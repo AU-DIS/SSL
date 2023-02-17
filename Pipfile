@@ -1,0 +1,35 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+requests = "*"
+numpy = "*"
+networkx = "*"
+scipy = "*"
+matplotlib = "*"
+jax = "*"
+jaxlib = "*"
+cvxpy = "*"
+torch = "*"
+cvx = "*"
+proxmin = "*"
+tqdm = "*"
+pyproximal = "*"
+pytest = "*"
+scikit-image = "*"
+kmeans1d = "*"
+livelossplot = "*"
+scikit-learn = "*"
+sys = "*"
+os = "*"
+warnings = "*"
+sklearn = "*"
+POT = "*"
+Theano = "*"
+Pillow = "*"
+Csv = "*"
+
+[dev-packages]
+pytest = "*"
