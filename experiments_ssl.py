@@ -48,6 +48,13 @@ def run_opt(edgefile,part_nodes, mu=1):
     
     condac = nx.conductance(G, part_nodes)
     print(f"Conductance equals to {condac}")
+    print(part_nodes)
+
+
+    lowestDegree = np.inf
+    for degreeView in nx.degree(G,part_nodes):
+        lowestDegree = min(lowestDegree,degreeView[1])
+    G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowestDegree))
 
     color_map=[]
     for node in G:
@@ -253,7 +260,8 @@ def find_best_mu(edgefile,part_nodes):
 
 
 if __name__ == '__main__':
-    graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
+    # graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
+    graph_names = ['ant']
     use_global_mu = True
     for graph_name in graph_names:
         res_dict={}
@@ -261,10 +269,11 @@ if __name__ == '__main__':
         best_mu = {}
         best_m_par = 0
         counter_m_par = 0
-        for folder_no in range(0,11):
+        folderAmount = 2
+        for folder_no in range(0,folderAmount):
             if use_global_mu and folder_no==0: continue
             perc = [0.1, 0.2, 0.3]
-            clcr = [i/10.0 for i in range(11)]
+            clcr = [i/10.0 for i in range(folderAmount)]
             for per in perc:
                 if folder_no == 0: 
                     best_mu[per] = {}
@@ -276,6 +285,7 @@ if __name__ == '__main__':
                     part_file = './data/'+graph_name+'/'+str(int(per*100))+'/'+str(folder_no)+'/'+graph_name+'_'+ext+'_nodes.txt'
                     print(f'Reading subgraph from {part_file}')
                     query_nodes=np.loadtxt(part_file)
+                    print(query_nodes)
                     #print(part_nodes)
                     ext = str(int(per*100))+"_"+str(int(lr*100))
                     edgefile = './data/'+graph_name+'/'+str(int(per*100))+'/'+str(folder_no)+'/'+graph_name+'_'+ext+'.txt'
