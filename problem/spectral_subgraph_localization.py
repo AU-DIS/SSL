@@ -159,8 +159,12 @@ class SubgraphIsomorphismSolver:
 
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        no_of_edges_to_remove = 10 # FAKE IT
-        experiments_to_make = 1 # FAKE IT
+        no_of_edges_to_remove = len(edge_list) // 2
+        experiments_to_make = 5 # FAKE IT
+        nodes_in_result = 16 # FAKE IT
+ 
+        n = original_A.shape[0]
+        votes = torch.zeros(n)
 
         for _ in range(experiments_to_make):
             # remove edges
@@ -169,7 +173,7 @@ class SubgraphIsomorphismSolver:
             self.A = modified_A
             self.L = lap_from_adj(modified_A)
 
-
+            # solving ssl for the modified graph
             while not converged_outer:
                 v, _ = self._solve(maxiter_inner=max_inner_iters,
                                    show_iter=show_iter,
@@ -182,12 +186,13 @@ class SubgraphIsomorphismSolver:
                 converged_outer = self._check_convergence(self.v.detach(), self.a_tol)
                 converged_outer = converged_outer or (outer_iter_counter >= max_outer_iters)
 
-        v_binary, _ = self.threshold(v_np=v.detach().numpy())
-        print("this is v_binary", v_binary)
-        print("v_binary shape", v_binary.shape)
-        v_bin_numpy = v_binary.detach().numpy()
-        print("this is v_bin_numpy", v_bin_numpy)
-        print("v_bin_numpy shape", v_bin_numpy.shape)
+            # adding votes
+            v_binary, _ = self.threshold(v_np=v.detach().numpy())
+            votes += v_binary
+
+        # Finding the voting majority
+        v = find_voting_majority(votes, nodes_in_result)
+        E = self.E_from_v(v.detach(), original_A)
 
         # Return v_binary and e_binary instead of v and E!
         return v, E
@@ -623,17 +628,17 @@ def lap_from_adj(A):
 
 
 def find_random_edges(edge_list, no_of_edges_to_remove):
+    _edge_list = edge_list.copy()
     edges_to_remove = []
     n = len(edge_list)
     for _ in range(no_of_edges_to_remove):
         idx = random.randint(n)
-        edge_to_remove = edge_list.pop(idx)
+        edge_to_remove = _edge_list.pop(idx)
         edges_to_remove.append(edge_to_remove)
         n -= 1
     return edges_to_remove
 
 def remove_edges(A, edges_to_remove):
-    # Assumes A is a torch matrix. Will return a torch matrix.
     for i, j in edges_to_remove:
         if A[i, j] == 0 or A[j, i] == 0:
             raise Exception("Expected edge, but did not find any")
@@ -641,18 +646,24 @@ def remove_edges(A, edges_to_remove):
 
     return A
 
+def find_voting_majority(votes, nodes_in_result):
+    indices_of_top_nodes = np.argpartition(votes, nodes_in_result)[:nodes_in_result]
+
+    voting_majority = torch.full_like(votes, 1, dtype=torch.double)
+
+    for idx in indices_of_top_nodes:
+        voting_majority[idx] = 0
+
+    return voting_majority
 
 def adjmatrix_to_edgelist(A):
-    # assumes A is a torch matrix
-    A_np = A.detach().numpy()
-    
     # assumes A is a quadratic matrix
-    n, _ = A_np.shape
+    n, _ = A.shape
 
     res = []
     for i in range(n):
         for j in range(i+1): # assumes A is symmetric
-            if A_np[i, j] == 0:
+            if A[i, j] == 0:
                 continue
             # an edge from i to j exists in A
             res.append((i, j))
