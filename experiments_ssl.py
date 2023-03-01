@@ -52,7 +52,8 @@ def run_opt(edgefile,part_nodes, mu=1):
 
 
     lowestDegree = np.inf
-    for degreeView in nx.degree(G,part_nodes):
+    sub_G = nx.subgraph(G, part_nodes)
+    for degreeView in nx.degree(sub_G):
         lowestDegree = min(lowestDegree,degreeView[1])
     G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowestDegree))
 
