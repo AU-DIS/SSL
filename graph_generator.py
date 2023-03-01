@@ -16,8 +16,9 @@ def main(args):
     folder=now.strftime("%d-%m-%Y_%H-%M-%S")
     folder=args.graph+'_'+folder
     folder = './Data'
-    generate_ssl_graph(folder)
-    generate_ssl_graph_perc(folder)
+    # TODO uncomment if you want to generate these again
+    # generate_ssl_graph(folder)
+    # generate_ssl_graph_perc(folder)
 
 def generate_ssl_graph(folder):
 

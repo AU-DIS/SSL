@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from numpy import histogram
+from numpy import histogram, random
 from torch import tensor
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -156,17 +156,40 @@ class SubgraphIsomorphismSolver:
               verbose=False):
         outer_iter_counter = 0
         converged_outer = False
-        while not converged_outer:
-            v, _ = self._solve(maxiter_inner=max_inner_iters,
-                               show_iter=show_iter,
-                               verbose=verbose)
-            E, _ = self.E_from_v(self.v.detach(), self.A)
-            self.set_init(E0=E, v0=v)
-            self.v = v
-            self.E = E
-            outer_iter_counter += 1
-            converged_outer = self._check_convergence(self.v.detach(), self.a_tol)
-            converged_outer = converged_outer or (outer_iter_counter >= max_outer_iters)
+
+        original_A = self.A.detach().clone()
+        edge_list = adjmatrix_to_edgelist(self.A)
+        no_of_edges_to_remove = 10 # FAKE IT
+        experiments_to_make = 1 # FAKE IT
+
+        for _ in range(experiments_to_make):
+            # remove edges
+            edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
+            modified_A = remove_edges(original_A.detach().clone(), edges_to_remove)
+            self.A = modified_A
+            self.L = lap_from_adj(modified_A)
+
+
+            while not converged_outer:
+                v, _ = self._solve(maxiter_inner=max_inner_iters,
+                                   show_iter=show_iter,
+                                   verbose=verbose)
+                E, _ = self.E_from_v(self.v.detach(), self.A)
+                self.set_init(E0=E, v0=v)
+                self.v = v
+                self.E = E
+                outer_iter_counter += 1
+                converged_outer = self._check_convergence(self.v.detach(), self.a_tol)
+                converged_outer = converged_outer or (outer_iter_counter >= max_outer_iters)
+
+        v_binary, _ = self.threshold(v_np=v.detach().numpy())
+        print("this is v_binary", v_binary)
+        print("v_binary shape", v_binary.shape)
+        v_bin_numpy = v_binary.detach().numpy()
+        print("this is v_bin_numpy", v_bin_numpy)
+        print("v_bin_numpy shape", v_bin_numpy.shape)
+
+        # Return v_binary and e_binary instead of v and E!
         return v, E
 
     def _solve(self, maxiter_inner=100, show_iter=10, verbose=False):
@@ -597,6 +620,44 @@ def lap_from_adj(A):
     return torch.diag(A.sum(axis=1)) - A
     # D_sqrt_reciprocal = torch.diag(A.sum(axis=1) **-0.5)
     # return D_sqrt_reciprocal@A@D_sqrt_reciprocal
+
+
+def find_random_edges(edge_list, no_of_edges_to_remove):
+    edges_to_remove = []
+    n = len(edge_list)
+    for _ in range(no_of_edges_to_remove):
+        idx = random.randint(n)
+        edge_to_remove = edge_list.pop(idx)
+        edges_to_remove.append(edge_to_remove)
+        n -= 1
+    return edges_to_remove
+
+def remove_edges(A, edges_to_remove):
+    # Assumes A is a torch matrix. Will return a torch matrix.
+    for i, j in edges_to_remove:
+        if A[i, j] == 0 or A[j, i] == 0:
+            raise Exception("Expected edge, but did not find any")
+        A[i, j] = A[j, i] = 0
+
+    return A
+
+
+def adjmatrix_to_edgelist(A):
+    # assumes A is a torch matrix
+    A_np = A.detach().numpy()
+    
+    # assumes A is a quadratic matrix
+    n, _ = A_np.shape
+
+    res = []
+    for i in range(n):
+        for j in range(i+1): # assumes A is symmetric
+            if A_np[i, j] == 0:
+                continue
+            # an edge from i to j exists in A
+            res.append((i, j))
+
+    return res
 
 
 def edgelist_to_adjmatrix(edgeList_file):
