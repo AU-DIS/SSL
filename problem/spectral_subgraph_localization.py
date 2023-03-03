@@ -153,20 +153,48 @@ class SubgraphIsomorphismSolver:
               max_outer_iters=10,
               max_inner_iters=10,
               show_iter=10,
-              verbose=False):
+              verbose=True):
+        print("Starting regular solve")
+        print("This is A", self.A)
         outer_iter_counter = 0
         converged_outer = False
 
+        while not converged_outer:
+            v, _ = self._solve(maxiter_inner=max_inner_iters,
+                               show_iter=show_iter,
+                               verbose=verbose)
+            E, _ = self.E_from_v(self.v.detach(), self.A)
+            self.set_init(E0=E, v0=v)
+            self.v = v
+            self.E = E
+            outer_iter_counter += 1
+            converged_outer = self._check_convergence(self.v.detach(), self.a_tol)
+            converged_outer = converged_outer or (outer_iter_counter >= max_outer_iters)
+
+        # Return v_binary and e_binary instead of v and E!
+        return v, E
+
+    def randomized_solve(self,
+              max_outer_iters=10,
+              max_inner_iters=10,
+              show_iter=10,
+              verbose=True):
+        print("Starting randomized solve")
+        print("This is A", self.A)
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        no_of_edges_to_remove = len(edge_list) // 2
-        experiments_to_make = 5 # FAKE IT
-        nodes_in_result = 16 # FAKE IT
+        print("length of edge list", len(edge_list))
+        no_of_edges_to_remove = len(edge_list) // 10
+        experiments_to_make = 1 # FAKE IT
+        nodes_in_result = 31 # FAKE IT
  
         n = original_A.shape[0]
         votes = torch.zeros(n)
 
-        for _ in range(experiments_to_make):
+        for _ in range(experiments_to_make + 1):
+            outer_iter_counter = 0
+            converged_outer = False
+
             # remove edges
             edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
             modified_A = remove_edges(original_A.detach().clone(), edges_to_remove)
