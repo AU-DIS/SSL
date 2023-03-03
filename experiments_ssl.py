@@ -55,6 +55,7 @@ def run_opt(edgefile,part_nodes, mu=1):
     sub_G = nx.subgraph(G, part_nodes)
     for degree_view in nx.degree(sub_G):
         lowest_degree = min(lowest_degree,degree_view[1])
+    print("removing edges:", list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
     G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
 
     color_map=[]
