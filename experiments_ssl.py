@@ -10,7 +10,7 @@ import networkx as nx
 import torch
 from problem.spectral_subgraph_localization import edgelist_to_adjmatrix
 from optimization.prox.prox import ProxSphere, ProxL21ForSymmetricCenteredMatrix
-from problem.spectral_subgraph_localization import SubgraphIsomorphismSolver
+from problem.spectral_subgraph_localization import SubgraphIsomorphismSolver, VotingSubgraphIsomorpishmSolver
 import pickle
 import sys
 
@@ -128,7 +128,8 @@ def run_opt(edgefile,part_nodes, mu=1):
         v, E = \
             subgraph_isomorphism_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
 
-        v_randomized, _ = subgraph_isomorphism_solver.randomized_solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
+        random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params)
+        v_randomized, _ = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
 
         #pause(1)
         v_binary, E_binary = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy())
@@ -157,8 +158,14 @@ def run_opt(edgefile,part_nodes, mu=1):
     print("Accuracy, original vs randomized", original_accuracy, randomized_accuracy)
     print("balanced Accuracy, original vs randomized", original_balanced, randomized_balanced)  
 
+    # nodes_in_res = count_nodes(v_binary)
+    # print("nodes in res", nodes_in_res)
+
     # Returning original accuracy
     return (accur(v_gt, v_binary.clone().detach().numpy()), balanced_acc(v_gt, v_binary.clone().detach().numpy()), condac)
+
+def count_nodes(v_binary):
+    return len(v_binary) - np.count_nonzero(v_binary)
 
 
 def find_best_mu(edgefile,part_nodes):
