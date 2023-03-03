@@ -51,11 +51,11 @@ def run_opt(edgefile,part_nodes, mu=1):
     print(part_nodes)
 
 
-    lowestDegree = np.inf
+    lowest_degree = np.inf
     sub_G = nx.subgraph(G, part_nodes)
-    for degreeView in nx.degree(sub_G):
-        lowestDegree = min(lowestDegree,degreeView[1])
-    G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowestDegree))
+    for degree_view in nx.degree(sub_G):
+        lowest_degree = min(lowest_degree,degree_view[1])
+    G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
 
     color_map=[]
     for node in G:
@@ -261,8 +261,8 @@ def find_best_mu(edgefile,part_nodes):
 
 
 if __name__ == '__main__':
-    # graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
-    graph_names = ['ant']
+    #graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
+    graph_names = ['malaria']
     use_global_mu = True
     for graph_name in graph_names:
         res_dict={}
