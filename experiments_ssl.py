@@ -118,6 +118,9 @@ def run_opt(edgefile,part_nodes, mu=1):
         subgraph_isomorphism_solver.set_problem_params(problem_params)
         v, E = \
             subgraph_isomorphism_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
+
+        v_randomized, _ = subgraph_isomorphism_solver.randomized_solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
+
         #pause(1)
         v_binary, E_binary = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy())
         loss = subgraph_isomorphism_solver.smooth_loss_function(ref_spectrum, L, E_binary.clone().detach(),
@@ -138,6 +141,14 @@ def run_opt(edgefile,part_nodes, mu=1):
             v_smallest[i]=0
     gt_inidicator = v_gt
     gt_inidicator[gt_inidicator>0]=1 
+    
+    original_accuracy, original_balanced = accur(v_gt, v_binary.clone().detach().numpy()), balanced_acc(v_gt, v_binary.clone().detach().numpy())
+    randomized_accuracy, randomized_balanced = accur(v_gt, v_randomized.clone().detach().numpy()), balanced_acc(v_gt, v_randomized.clone().detach().numpy())
+
+    print("Accuracy, original vs randomized", original_accuracy, randomized_accuracy)
+    print("balanced Accuracy, original vs randomized", original_balanced, randomized_balanced)  
+
+    # Returning original accuracy
     return (accur(v_gt, v_binary.clone().detach().numpy()), balanced_acc(v_gt, v_binary.clone().detach().numpy()), condac)
 
 
@@ -253,7 +264,8 @@ def find_best_mu(edgefile,part_nodes):
 
 
 if __name__ == '__main__':
-    graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
+    # graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
+    graph_names = ['malaria']
     use_global_mu = True
     for graph_name in graph_names:
         res_dict={}
