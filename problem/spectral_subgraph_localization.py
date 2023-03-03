@@ -37,6 +37,49 @@ def block_stochastic_graph(n1, n2, p_parts=0.7, p_off=0.1):
 
     return p
 
+class VotingSubgraphIsomorpishmSolver:
+    def __init__(self, A, ref_spectrum, problem_params, solver_params, save_loss_terms=True):
+        self.A = A
+        self.ref_spectrum = ref_spectrum
+        self.problem_params = problem_params
+        self.solver_params = solver_params
+        self.save_loss_terms = save_loss_terms
+
+    def solve(self, max_outer_iters=10, max_inner_iters=10, show_iter=10, verbose=True):
+        print("Using VotingSubgraphIsomorpishmSolver")
+        original_A = self.A.detach().clone()
+        edge_list = adjmatrix_to_edgelist(self.A)
+        experiments_to_make = 5 # FAKE IT
+        edges_removal_array = [0.05] * experiments_to_make  # FAKE IT
+        nodes_in_result = 31 # FAKE IT
+ 
+        n = original_A.shape[0]
+        votes = torch.zeros(n)
+
+        for i in range(experiments_to_make):
+            print(f'{i}th iteration')
+            # remove edges
+            no_of_edges_to_remove = int(len(edge_list) * edges_removal_array[i])
+            edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
+            modified_A = remove_edges(original_A.detach().clone(), edges_to_remove)
+
+            # solving ssl for the modified graph
+            solver = \
+                SubgraphIsomorphismSolver(modified_A, self.ref_spectrum, self.problem_params, self.solver_params)
+            v, E = \
+                solver.solve(max_outer_iters, max_inner_iters, show_iter, verbose)
+
+            # adding votes
+            v_binary, _ = solver.threshold(v_np=v.detach().numpy())
+            votes += v_binary
+
+        # Finding the voting majority
+        print("Finding majority")
+        v = find_voting_majority(votes, nodes_in_result)
+        E = SubgraphIsomorphismSolver.E_from_v(v.detach(), original_A)
+
+        # Return v_binary and e_binary instead of v and E!
+        return v, E
 
 class SubgraphIsomorphismSolver:
 
@@ -154,10 +197,10 @@ class SubgraphIsomorphismSolver:
               max_inner_iters=10,
               show_iter=10,
               verbose=True):
-        print("Starting regular solve")
-        print("This is A", self.A)
         outer_iter_counter = 0
         converged_outer = False
+        
+        print("HELLO?")
 
         while not converged_outer:
             v, _ = self._solve(maxiter_inner=max_inner_iters,
@@ -170,6 +213,7 @@ class SubgraphIsomorphismSolver:
             outer_iter_counter += 1
             converged_outer = self._check_convergence(self.v.detach(), self.a_tol)
             converged_outer = converged_outer or (outer_iter_counter >= max_outer_iters)
+            print(outer_iter_counter)
 
         # Return v_binary and e_binary instead of v and E!
         return v, E
@@ -179,23 +223,22 @@ class SubgraphIsomorphismSolver:
               max_inner_iters=10,
               show_iter=10,
               verbose=True):
-        print("Starting randomized solve")
-        print("This is A", self.A)
+        print("Please don't go here")
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        print("length of edge list", len(edge_list))
-        no_of_edges_to_remove = len(edge_list) // 10
-        experiments_to_make = 1 # FAKE IT
+        edges_removal_array = [0.005, 0.02, 0.1, 0.2, 0.005, 0.02, 0.1, 0.2] 
+        experiments_to_make = 8 # FAKE IT
         nodes_in_result = 31 # FAKE IT
  
         n = original_A.shape[0]
         votes = torch.zeros(n)
 
-        for _ in range(experiments_to_make + 1):
+        for i in range(experiments_to_make):
             outer_iter_counter = 0
             converged_outer = False
 
             # remove edges
+            no_of_edges_to_remove = int(len(edge_list) * edges_removal_array[i])
             edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
             modified_A = remove_edges(original_A.detach().clone(), edges_to_remove)
             self.A = modified_A
