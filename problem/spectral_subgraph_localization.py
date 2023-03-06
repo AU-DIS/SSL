@@ -37,27 +37,39 @@ def block_stochastic_graph(n1, n2, p_parts=0.7, p_off=0.1):
 
     return p
 
+from sklearn.metrics import balanced_accuracy_score
+def balanced_acc(y_true, y_pred):
+    return balanced_accuracy_score(y_true, y_pred)
+
+def count_nodes(v_binary):
+    return len(v_binary) - np.count_nonzero(v_binary)
+
 class VotingSubgraphIsomorpishmSolver:
-    def __init__(self, A, ref_spectrum, problem_params, solver_params, save_loss_terms=True):
+    def __init__(self, A, ref_spectrum, problem_params, solver_params, v_gt, original_algorithm_acc, save_loss_terms=True):
         self.A = A
         self.ref_spectrum = ref_spectrum
         self.problem_params = problem_params
         self.solver_params = solver_params
         self.save_loss_terms = save_loss_terms
+        self.v_gt = v_gt
+        self.original_algorithm_acc = original_algorithm_acc
 
     def solve(self, max_outer_iters=10, max_inner_iters=10, show_iter=10, verbose=True):
-        print("Using VotingSubgraphIsomorpishmSolver")
+        print()
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        experiments_to_make = 5 # FAKE IT
-        edges_removal_array = [0.05] * experiments_to_make  # FAKE IT
-        nodes_in_result = 31 # FAKE IT
+        experiments_to_make = 50 # FAKE IT
+        edges_removal_array = [0.6] * experiments_to_make  # FAKE IT
+        solutions = []
+
+        voting_thresholds = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7]
  
         n = original_A.shape[0]
         votes = torch.zeros(n)
+        spectral_votes = torch.zeros(n)
+        smallest_votes = torch.zeros(n)
 
         for i in range(experiments_to_make):
-            print(f'{i}th iteration')
             # remove edges
             no_of_edges_to_remove = int(len(edge_list) * edges_removal_array[i])
             edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
@@ -73,13 +85,53 @@ class VotingSubgraphIsomorpishmSolver:
             v_binary, _ = solver.threshold(v_np=v.detach().numpy())
             votes += v_binary
 
+            v_binary_spectral, _ = solver.threshold(v_np=v.detach().numpy(), threshold_algo="spectral")
+            spectral_votes += v_binary_spectral
+
+            v_binary_smallest, _ = solver.threshold(v_np=v.detach().numpy(), threshold_algo="smallest")
+            smallest_votes += v_binary_smallest
+        
+            for threshold in voting_thresholds:
+                v = find_voting_majority(votes, i+1, threshold)
+                E = SubgraphIsomorphismSolver.E_from_v(v.detach(), original_A)
+                balanced_accuracy = balanced_acc(self.v_gt, v)
+                print(f'Balanced accuracy after {i+1} iterations, with {threshold} voting threshold: {balanced_accuracy}')
+                comparison_to_orignal = balanced_accuracy - self.original_algorithm_acc
+                print("Comparison to orginal algorithm:", comparison_to_orignal)
+                nodes_used = count_nodes(v)
+                print("Nodes used in solution:", nodes_used)
+                solutions.append((v, E))
+                
+                # Chcking with spectral and smallest threshold algo
+                v = find_voting_majority(spectral_votes, i+1, threshold)
+                balanced_accuracy = balanced_acc(self.v_gt, v)
+                print(f'Balanced accuracy after {i+1} iterations, with {threshold} voting threshold, using spectral threshold algo: {balanced_accuracy}')
+                comparison_to_orignal = balanced_accuracy - self.original_algorithm_acc
+                print("Comparison to orginal algorithm:", comparison_to_orignal)
+                nodes_used = count_nodes(v)
+                print("Nodes used in solution:", nodes_used)
+
+                v = find_voting_majority(smallest_votes, i+1, threshold)
+                balanced_accuracy = balanced_acc(self.v_gt, v)
+                print(f'Balanced accuracy after {i+1} iterations, with {threshold} voting threshold, using smallest threshold algo: {balanced_accuracy}')
+                comparison_to_orignal = balanced_accuracy - self.original_algorithm_acc
+                print("Comparison to orginal algorithm:", comparison_to_orignal)
+                nodes_used = count_nodes(v)
+                print("Nodes used in solution:", nodes_used)
+
+                print()
+                print("-------")
+                print()
+            print("************")
+            print()
+
         # Finding the voting majority
-        print("Finding majority")
-        v = find_voting_majority(votes, nodes_in_result)
+        print("Finding final majority")
+        v = find_voting_majority(votes, experiments_to_make, threshold = 0.2)
         E = SubgraphIsomorphismSolver.E_from_v(v.detach(), original_A)
 
         # Return v_binary and e_binary instead of v and E!
-        return v, E
+        return v, E, solutions
 
 class SubgraphIsomorphismSolver:
 
@@ -200,8 +252,6 @@ class SubgraphIsomorphismSolver:
         outer_iter_counter = 0
         converged_outer = False
         
-        print("HELLO?")
-
         while not converged_outer:
             v, _ = self._solve(maxiter_inner=max_inner_iters,
                                show_iter=show_iter,
@@ -213,7 +263,6 @@ class SubgraphIsomorphismSolver:
             outer_iter_counter += 1
             converged_outer = self._check_convergence(self.v.detach(), self.a_tol)
             converged_outer = converged_outer or (outer_iter_counter >= max_outer_iters)
-            print(outer_iter_counter)
 
         # Return v_binary and e_binary instead of v and E!
         return v, E
@@ -262,7 +311,7 @@ class SubgraphIsomorphismSolver:
             votes += v_binary
 
         # Finding the voting majority
-        v = find_voting_majority(votes, nodes_in_result)
+        v = find_voting_majority(votes, experiments_to_make)
         E = self.E_from_v(v.detach(), original_A)
 
         # Return v_binary and e_binary instead of v and E!
@@ -717,10 +766,18 @@ def remove_edges(A, edges_to_remove):
 
     return A
 
-def find_voting_majority(votes, nodes_in_result):
-    indices_of_top_nodes = np.argpartition(votes, nodes_in_result)[:nodes_in_result]
+def find_voting_majority(votes, iterations_used, threshold):
+    normalized_votes = votes / iterations_used
 
-    voting_majority = torch.full_like(votes, 1, dtype=torch.double)
+    _threshold = 1 - threshold
+
+    # find indices of nodes with vote ratio <= _threshold
+    indices_of_top_nodes = []
+    for idx, vote_ratio in enumerate(normalized_votes):
+        if vote_ratio < _threshold:
+            indices_of_top_nodes.append(idx)
+
+    voting_majority = torch.full_like(normalized_votes, 1, dtype=torch.double)
 
     for idx in indices_of_top_nodes:
         voting_majority[idx] = 0
