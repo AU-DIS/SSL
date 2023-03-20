@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from numpy import histogram, random
+from numpy import histogram, random, random
 from torch import tensor
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -72,6 +72,11 @@ class VotingSubgraphIsomorpishmSolver:
         for i in range(experiments_to_make):
             # remove edges
             no_of_edges_to_remove = int(len(edge_list) * edges_removal_array[i])
+            #edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
+            G=original_A.numpy(force=True)
+            #print("G",G)
+            #print("amount of bridges",list(nx.bridges(nx.from_numpy_array(G))))
+            #edges_to_remove = nx.bridges(nx.from_numpy_array(G))
             edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
             modified_A = remove_edges(original_A.detach().clone(), edges_to_remove)
 
@@ -248,10 +253,9 @@ class SubgraphIsomorphismSolver:
               max_outer_iters=10,
               max_inner_iters=10,
               show_iter=10,
-              verbose=True):
+              verbose=False):
         outer_iter_counter = 0
         converged_outer = False
-        
         while not converged_outer:
             v, _ = self._solve(maxiter_inner=max_inner_iters,
                                show_iter=show_iter,
@@ -289,6 +293,59 @@ class SubgraphIsomorphismSolver:
             # remove edges
             no_of_edges_to_remove = int(len(edge_list) * edges_removal_array[i])
             edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
+            modified_A = remove_edges(original_A.detach().clone(), edges_to_remove)
+            self.A = modified_A
+            self.L = lap_from_adj(modified_A)
+
+            # solving ssl for the modified graph
+            while not converged_outer:
+                v, _ = self._solve(maxiter_inner=max_inner_iters,
+                                   show_iter=show_iter,
+                                   verbose=verbose)
+                E, _ = self.E_from_v(self.v.detach(), self.A)
+                self.set_init(E0=E, v0=v)
+                self.v = v
+                self.E = E
+                outer_iter_counter += 1
+                converged_outer = self._check_convergence(self.v.detach(), self.a_tol)
+                converged_outer = converged_outer or (outer_iter_counter >= max_outer_iters)
+
+            # adding votes
+            v_binary, _ = self.threshold(v_np=v.detach().numpy())
+            votes += v_binary
+
+        # Finding the voting majority
+        v = find_voting_majority(votes, experiments_to_make)
+        E = self.E_from_v(v.detach(), original_A)
+
+        # Return v_binary and e_binary instead of v and E!
+
+        # Return v_binary and e_binary instead of v and E!
+        return v, E
+
+    def randomized_solve(self,
+              max_outer_iters=10,
+              max_inner_iters=10,
+              show_iter=10,
+              verbose=True):
+        print("Please don't go here")
+        original_A = self.A.detach().clone()
+        edge_list = adjmatrix_to_edgelist(self.A)
+        edges_removal_array = [0.005, 0.02, 0.1, 0.2, 0.005, 0.02, 0.1, 0.2] 
+        experiments_to_make = 8 # FAKE IT
+        nodes_in_result = 31 # FAKE IT
+ 
+        n = original_A.shape[0]
+        votes = torch.zeros(n)
+
+        for i in range(experiments_to_make):
+            outer_iter_counter = 0
+            converged_outer = False
+
+            # remove edges
+            no_of_edges_to_remove = int(len(edge_list) * edges_removal_array[i])
+            edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
+            print("amount of bridges",nx.bridges(nx.from_edgeList(edge_list)))
             modified_A = remove_edges(original_A.detach().clone(), edges_to_remove)
             self.A = modified_A
             self.L = lap_from_adj(modified_A)
@@ -799,6 +856,58 @@ def adjmatrix_to_edgelist(A):
     return res
 
 
+def find_random_edges(edge_list, no_of_edges_to_remove):
+    _edge_list = edge_list.copy()
+    edges_to_remove = []
+    n = len(edge_list)
+    for _ in range(no_of_edges_to_remove):
+        idx = random.randint(n)
+        edge_to_remove = _edge_list.pop(idx)
+        edges_to_remove.append(edge_to_remove)
+        n -= 1
+    return edges_to_remove
+
+def remove_edges(A, edges_to_remove):
+    for i, j in edges_to_remove:
+        if A[i, j] == 0 or A[j, i] == 0:
+            raise Exception("Expected edge, but did not find any")
+        A[i, j] = A[j, i] = 0
+
+    return A
+
+def find_voting_majority(votes, iterations_used, threshold):
+    normalized_votes = votes / iterations_used
+
+    _threshold = 1 - threshold
+
+    # find indices of nodes with vote ratio <= _threshold
+    indices_of_top_nodes = []
+    for idx, vote_ratio in enumerate(normalized_votes):
+        if vote_ratio < _threshold:
+            indices_of_top_nodes.append(idx)
+
+    voting_majority = torch.full_like(normalized_votes, 1, dtype=torch.double)
+
+    for idx in indices_of_top_nodes:
+        voting_majority[idx] = 0
+
+    return voting_majority
+
+def adjmatrix_to_edgelist(A):
+    # assumes A is a quadratic matrix
+    n, _ = A.shape
+
+    res = []
+    for i in range(n):
+        for j in range(i+1): # assumes A is symmetric
+            if A[i, j] == 0:
+                continue
+            # an edge from i to j exists in A
+            res.append((i, j))
+
+    return res
+
+
 def edgelist_to_adjmatrix(edgeList_file):
     edge_list = np.loadtxt(edgeList_file, usecols=range(2))
 
@@ -878,3 +987,4 @@ if __name__ == '__main__':
                                               n1,
                                               subgraph_isomorphism_solver.v,
                                               subgraph_isomorphism_solver.E)
+

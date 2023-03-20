@@ -10,7 +10,7 @@ import networkx as nx
 import torch
 from problem.spectral_subgraph_localization import edgelist_to_adjmatrix
 from optimization.prox.prox import ProxSphere, ProxL21ForSymmetricCenteredMatrix
-from problem.spectral_subgraph_localization import SubgraphIsomorphismSolver, VotingSubgraphIsomorpishmSolver
+from problem.spectral_subgraph_localization import SubgraphIsomorphismSolver, VotingSubgraphIsomorpishmSolver, VotingSubgraphIsomorpishmSolver
 import pickle
 import sys
 
@@ -57,6 +57,10 @@ def run_opt(edgefile,part_nodes, mu=1):
         lowest_degree = min(lowest_degree,degree_view[1])
     print("removing edges:", list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
     G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
+
+    if condac == 0:
+        print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
+        return (0, 0, 0)
 
     if condac == 0:
         print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
@@ -133,6 +137,26 @@ def run_opt(edgefile,part_nodes, mu=1):
             subgraph_isomorphism_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
 
         v_binary, E_binary = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy())
+        v_bin_spectral, _ = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy(), threshold_algo="spectral")
+        v_bin_smallest, _ = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy(), threshold_algo="smallest")
+        gt_inidicator = v_gt
+        gt_inidicator[gt_inidicator>0]=1 
+
+        original_accuracy = accur(v_gt, v_binary.clone().detach().numpy())
+        original_balanced = balanced_acc(v_gt, v_binary.clone().detach().numpy())
+        print("Original balanced accuracy:", original_balanced)
+        original_balanced_spectral = balanced_acc(v_gt, v_bin_spectral.clone().detach().numpy())
+        print("Original balanced with spectral threshold algo:", original_balanced_spectral)
+        original_balanced_smallest = balanced_acc(v_gt, v_bin_smallest.clone().detach().numpy())
+        print("Original balanced with smallest threshold algo:", original_balanced_smallest)
+
+        if original_balanced > 0.9:
+            print("Original accuracy was already high. Skipping.")
+            return (original_accuracy, original_balanced, condac)
+
+        random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, original_balanced)
+        v_randomized, _, solutions = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
+
         v_bin_spectral, _ = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy(), threshold_algo="spectral")
         v_bin_smallest, _ = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy(), threshold_algo="smallest")
         gt_inidicator = v_gt
