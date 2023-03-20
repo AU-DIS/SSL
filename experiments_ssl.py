@@ -62,10 +62,6 @@ def run_opt(edgefile,part_nodes, mu=1):
         print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
         return (0, 0, 0)
 
-    if condac == 0:
-        print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
-        return (0, 0, 0)
-
     color_map=[]
     for node in G:
         if node in part_nodes:
