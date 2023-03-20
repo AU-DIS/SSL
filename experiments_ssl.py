@@ -29,16 +29,20 @@ def accur(y_true, y_pred):
             if y_true[i] == y_pred[i]:
                 correct += 1
     return 1.0*correct/counter
-        
-    
+
+def prune_graph(G, part_nodes):
+    lowest_degree = np.inf
+    sub_G = nx.subgraph(G, part_nodes)
+    for degree_view in nx.degree(sub_G):
+        lowest_degree = min(lowest_degree,degree_view[1])
+    print("removing edges:", list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
+    G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
 
 def run_opt(edgefile,part_nodes, mu=1):
-
     print(f'Reading from {edgefile}')
     A1=edgelist_to_adjmatrix(edgefile)
     G=nx.from_numpy_matrix(A1)
     A = torch.tensor(nx.to_numpy_matrix(G))
-
 
     n1 = len(part_nodes)
     n = len(G.nodes)
@@ -48,15 +52,8 @@ def run_opt(edgefile,part_nodes, mu=1):
     
     condac = nx.conductance(G, part_nodes)
     print(f"Conductance equals to {condac}")
-    print(part_nodes)
 
-
-    lowest_degree = np.inf
-    sub_G = nx.subgraph(G, part_nodes)
-    for degree_view in nx.degree(sub_G):
-        lowest_degree = min(lowest_degree,degree_view[1])
-    print("removing edges:", list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
-    G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
+    prune_graph(G, part_nodes) # TODO gør noget med G, lav A ud fra G? Vær opmærksom på om originale indices stadig passer...
 
     if condac == 0:
         print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
@@ -177,8 +174,6 @@ def run_opt(edgefile,part_nodes, mu=1):
         if threshold_E:
             v_clustered, E_clustered = subgraph_isomorphism_solver.threshold(v_np = v.detach().numpy())
             subgraph_isomorphism_solver.set_init(E0 = E_clustered, v0 = v)
-
-
 
     #pause(1)
     v_binary, E_binary = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy())
