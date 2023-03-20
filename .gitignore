@@ -1,4 +1,5 @@
 **/__pycache__
 *.pyc
-**/data
 **/pkl_results_CONE
+**/pkl_results
+**/ssl_graphs
