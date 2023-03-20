@@ -62,10 +62,6 @@ def run_opt(edgefile,part_nodes, mu=1):
         print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
         return (0, 0, 0)
 
-    if condac == 0:
-        print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
-        return (0, 0, 0)
-
     color_map=[]
     for node in G:
         if node in part_nodes:
@@ -335,7 +331,7 @@ if __name__ == '__main__':
         for folder_no in range(0,folderAmount):
             if use_global_mu and folder_no==0: continue
             perc = [0.1, 0.2, 0.3]
-            clcr = [i/10.0 for i in range(folderAmount)]
+            clcr = [i/10.0 for i in range(11)]
             for per in perc:
                 if folder_no == 0: 
                     best_mu[per] = {}
