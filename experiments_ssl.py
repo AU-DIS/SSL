@@ -10,7 +10,7 @@ import networkx as nx
 import torch
 from problem.spectral_subgraph_localization import edgelist_to_adjmatrix
 from optimization.prox.prox import ProxSphere, ProxL21ForSymmetricCenteredMatrix
-from problem.spectral_subgraph_localization import SubgraphIsomorphismSolver, VotingSubgraphIsomorpishmSolver
+from problem.spectral_subgraph_localization import SubgraphIsomorphismSolver, VotingSubgraphIsomorpishmSolver, VotingSubgraphIsomorpishmSolver
 import pickle
 import sys
 
@@ -48,6 +48,19 @@ def run_opt(edgefile,part_nodes, mu=1):
     
     condac = nx.conductance(G, part_nodes)
     print(f"Conductance equals to {condac}")
+    print(part_nodes)
+
+
+    lowest_degree = np.inf
+    sub_G = nx.subgraph(G, part_nodes)
+    for degree_view in nx.degree(sub_G):
+        lowest_degree = min(lowest_degree,degree_view[1])
+    print("removing edges:", list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
+    G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
+
+    if condac == 0:
+        print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
+        return (0, 0, 0)
 
     if condac == 0:
         print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
@@ -124,6 +137,26 @@ def run_opt(edgefile,part_nodes, mu=1):
             subgraph_isomorphism_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
 
         v_binary, E_binary = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy())
+        v_bin_spectral, _ = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy(), threshold_algo="spectral")
+        v_bin_smallest, _ = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy(), threshold_algo="smallest")
+        gt_inidicator = v_gt
+        gt_inidicator[gt_inidicator>0]=1 
+
+        original_accuracy = accur(v_gt, v_binary.clone().detach().numpy())
+        original_balanced = balanced_acc(v_gt, v_binary.clone().detach().numpy())
+        print("Original balanced accuracy:", original_balanced)
+        original_balanced_spectral = balanced_acc(v_gt, v_bin_spectral.clone().detach().numpy())
+        print("Original balanced with spectral threshold algo:", original_balanced_spectral)
+        original_balanced_smallest = balanced_acc(v_gt, v_bin_smallest.clone().detach().numpy())
+        print("Original balanced with smallest threshold algo:", original_balanced_smallest)
+
+        if original_balanced > 0.9:
+            print("Original accuracy was already high. Skipping.")
+            return (original_accuracy, original_balanced, condac)
+
+        random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, original_balanced)
+        v_randomized, _, solutions = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
+
         v_bin_spectral, _ = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy(), threshold_algo="spectral")
         v_bin_smallest, _ = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy(), threshold_algo="smallest")
         gt_inidicator = v_gt
@@ -298,10 +331,11 @@ if __name__ == '__main__':
         best_mu = {}
         best_m_par = 0
         counter_m_par = 0
-        for folder_no in range(0,2): # change back to 11!
+        folderAmount = 2
+        for folder_no in range(0,folderAmount):
             if use_global_mu and folder_no==0: continue
             perc = [0.1, 0.2, 0.3]
-            clcr = [i/10.0 for i in range(11)]
+            clcr = [i/10.0 for i in range(folderAmount)]
             for per in perc:
                 if folder_no == 0: 
                     best_mu[per] = {}
@@ -313,6 +347,7 @@ if __name__ == '__main__':
                     part_file = './data/'+graph_name+'/'+str(int(per*100))+'/'+str(folder_no)+'/'+graph_name+'_'+ext+'_nodes.txt'
                     print(f'Reading subgraph from {part_file}')
                     query_nodes=np.loadtxt(part_file)
+                    print(query_nodes)
                     #print(part_nodes)
                     ext = str(int(per*100))+"_"+str(int(lr*100))
                     edgefile = './data/'+graph_name+'/'+str(int(per*100))+'/'+str(folder_no)+'/'+graph_name+'_'+ext+'.txt'
