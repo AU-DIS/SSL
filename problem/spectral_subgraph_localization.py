@@ -37,9 +37,18 @@ def block_stochastic_graph(n1, n2, p_parts=0.7, p_off=0.1):
 
     return p
 
-from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import balanced_accuracy_score, recall_score, precision_score, f1_score
 def balanced_acc(y_true, y_pred):
     return balanced_accuracy_score(y_true, y_pred)
+
+def recall(y_true, y_pred):
+    return recall_score(y_true, y_pred)
+
+def precision(y_true, y_pred):
+    return precision_score(y_true, y_pred)
+
+def f1(y_true, y_pred):
+    return f1_score(y_true, y_pred)
 
 def count_nodes(v_binary):
     return len(v_binary) - np.count_nonzero(v_binary)
@@ -58,7 +67,7 @@ class VotingSubgraphIsomorpishmSolver:
         print()
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        experiments_to_make = 50 # FAKE IT
+        experiments_to_make = 2 # FAKE IT
         edges_removal_array = [0.6] * experiments_to_make  # FAKE IT
         solutions = []
 
@@ -95,12 +104,23 @@ class VotingSubgraphIsomorpishmSolver:
 
             v_binary_smallest, _ = solver.threshold(v_np=v.detach().numpy(), threshold_algo="smallest")
             smallest_votes += v_binary_smallest
-        
+            recalls = []
+            precisions = []
+            f1s = []
+            balanced_accs = []
             for threshold in voting_thresholds:
                 v = find_voting_majority(votes, i+1, threshold)
                 E = SubgraphIsomorphismSolver.E_from_v(v.detach(), original_A)
                 balanced_accuracy = balanced_acc(self.v_gt, v)
+                recall_score = recall(self.v_gt, v)
+                precision_score = precision(self.v_gt, v)
+                f1_score = f1(self.v_gt, v)           
+                recalls.append(recall_score)
+                precisions.append(precision_score)
+                f1s.append(f1_score)
+                balanced_accs.append(balanced_accuracy)
                 print(f'Balanced accuracy after {i+1} iterations, with {threshold} voting threshold: {balanced_accuracy}')
+
                 comparison_to_orignal = balanced_accuracy - self.original_algorithm_acc
                 print("Comparison to orginal algorithm:", comparison_to_orignal)
                 nodes_used = count_nodes(v)
@@ -130,7 +150,25 @@ class VotingSubgraphIsomorpishmSolver:
             print("************")
             print()
 
-        # Finding the voting majority
+        # Calculating statistics and creating plots
+        print("Calculating statistics and creating plots")
+        fig, ax = plt.subplots()  # Create a figure containing a single axes.
+        ax.plot(voting_thresholds, recalls)  # Plot some data on the axes.
+        fig.savefig("recall.png")  # Save the figure to a file.
+        fig, ax = plt.subplots()  # Create a figure containing a single axes.
+        ax.plot(voting_thresholds, precisions)  # Plot some data on the axes.
+        fig.savefig("precision.png")  # Save the figure to a file.
+        fig,axis = plt.subplots()
+        axis.plot(voting_thresholds, f1s)
+        fig.savefig("f1.png")
+        balanced_accuracy = balanced_acc(self.v_gt, v)
+        fig, ax = plt.subplots()  # Create a figure containing a single axes.
+        ax.plot(voting_thresholds, balanced_accs)  # Plot some data on the axes.
+        fig.savefig("balanced_acc.png")  # Save the figure to a file.
+        print("recall",recalls)
+        print("precision",precisions)
+        
+               # Finding the voting majority
         print("Finding final majority")
         v = find_voting_majority(votes, experiments_to_make, threshold = 0.2)
         E = SubgraphIsomorphismSolver.E_from_v(v.detach(), original_A)
