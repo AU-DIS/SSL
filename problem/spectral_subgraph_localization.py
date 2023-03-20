@@ -1,3 +1,4 @@
+from networkx.algorithms.centrality.betweenness_subset import dijkstra
 import torch
 import numpy as np
 from numpy import histogram, random, random
@@ -19,6 +20,7 @@ from livelossplot.outputs import MatplotlibPlot
 from time import sleep
 from scipy.linalg import qr, pinv
 from sklearn.cluster import SpectralClustering
+from enum import Enum
 
 
 def block_stochastic_graph(n1, n2, p_parts=0.7, p_off=0.1):
@@ -44,6 +46,10 @@ def balanced_acc(y_true, y_pred):
 def count_nodes(v_binary):
     return len(v_binary) - np.count_nonzero(v_binary)
 
+class Solution_algo(Enum):
+    THRESHOLD = 1
+    DIJKSTRA = 2
+
 class VotingSubgraphIsomorpishmSolver:
     def __init__(self, A, ref_spectrum, problem_params, solver_params, v_gt, original_algorithm_acc, save_loss_terms=True):
         self.A = A
@@ -55,28 +61,19 @@ class VotingSubgraphIsomorpishmSolver:
         self.original_algorithm_acc = original_algorithm_acc
 
     def solve(self, max_outer_iters=10, max_inner_iters=10, show_iter=10, verbose=True):
-        print()
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        experiments_to_make = 50 # FAKE IT
-        edges_removal_array = [0.6] * experiments_to_make  # FAKE IT
-        solutions = []
-
-        voting_thresholds = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7]
+        experiments_to_make = 2 # FAKE IT
+        edges_removal_array = [0.5] * experiments_to_make  # FAKE IT
  
         n = original_A.shape[0]
         votes = torch.zeros(n)
-        spectral_votes = torch.zeros(n)
-        smallest_votes = torch.zeros(n)
 
         for i in range(experiments_to_make):
+            print(i)
+
             # remove edges
             no_of_edges_to_remove = int(len(edge_list) * edges_removal_array[i])
-            #edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
-            G=original_A.numpy(force=True)
-            #print("G",G)
-            #print("amount of bridges",list(nx.bridges(nx.from_numpy_array(G))))
-            #edges_to_remove = nx.bridges(nx.from_numpy_array(G))
             edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
             modified_A = remove_edges(original_A.detach().clone(), edges_to_remove)
 
@@ -90,53 +87,77 @@ class VotingSubgraphIsomorpishmSolver:
             v_binary, _ = solver.threshold(v_np=v.detach().numpy())
             votes += v_binary
 
-            v_binary_spectral, _ = solver.threshold(v_np=v.detach().numpy(), threshold_algo="spectral")
-            spectral_votes += v_binary_spectral
-
-            v_binary_smallest, _ = solver.threshold(v_np=v.detach().numpy(), threshold_algo="smallest")
-            smallest_votes += v_binary_smallest
-        
-            for threshold in voting_thresholds:
-                v = find_voting_majority(votes, i+1, threshold)
-                E = SubgraphIsomorphismSolver.E_from_v(v.detach(), original_A)
-                balanced_accuracy = balanced_acc(self.v_gt, v)
-                print(f'Balanced accuracy after {i+1} iterations, with {threshold} voting threshold: {balanced_accuracy}')
-                comparison_to_orignal = balanced_accuracy - self.original_algorithm_acc
-                print("Comparison to orginal algorithm:", comparison_to_orignal)
-                nodes_used = count_nodes(v)
-                print("Nodes used in solution:", nodes_used)
-                solutions.append((v, E))
-                
-                # Chcking with spectral and smallest threshold algo
-                v = find_voting_majority(spectral_votes, i+1, threshold)
-                balanced_accuracy = balanced_acc(self.v_gt, v)
-                print(f'Balanced accuracy after {i+1} iterations, with {threshold} voting threshold, using spectral threshold algo: {balanced_accuracy}')
-                comparison_to_orignal = balanced_accuracy - self.original_algorithm_acc
-                print("Comparison to orginal algorithm:", comparison_to_orignal)
-                nodes_used = count_nodes(v)
-                print("Nodes used in solution:", nodes_used)
-
-                v = find_voting_majority(smallest_votes, i+1, threshold)
-                balanced_accuracy = balanced_acc(self.v_gt, v)
-                print(f'Balanced accuracy after {i+1} iterations, with {threshold} voting threshold, using smallest threshold algo: {balanced_accuracy}')
-                comparison_to_orignal = balanced_accuracy - self.original_algorithm_acc
-                print("Comparison to orginal algorithm:", comparison_to_orignal)
-                nodes_used = count_nodes(v)
-                print("Nodes used in solution:", nodes_used)
-
-                print()
-                print("-------")
-                print()
-            print("************")
-            print()
-
-        # Finding the voting majority
-        print("Finding final majority")
-        v = find_voting_majority(votes, experiments_to_make, threshold = 0.2)
-        E = SubgraphIsomorphismSolver.E_from_v(v.detach(), original_A)
+        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA)
 
         # Return v_binary and e_binary instead of v and E!
-        return v, E, solutions
+        return v, E 
+
+    def find_solution(self, original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD):
+        v = None
+
+        if algo == Solution_algo.THRESHOLD:
+            v = find_voting_majority(votes, experiments_to_make, threshold=0.2)
+        elif algo == Solution_algo.DIJKSTRA:
+            v = self.dijkstra(original_A, votes, experiments_to_make, variant="cubic")
+
+        if v is None:
+            raise Exception("Should have found the final vertices for the solution, but did not find any!")
+
+        E = SubgraphIsomorphismSolver.E_from_v(v.detach(), original_A)
+        return v, E
+
+    def get_infinite_length(self, length_of_query, experiments_to_make, variant):
+        if variant == "linear":
+            return length_of_query * experiments_to_make + 1
+        if variant == "quadratic":
+            return length_of_query * experiments_to_make**2 + 1
+        if variant == "cubic":
+            return length_of_query * experiments_to_make**3 + 1
+        raise Exception("The variant was not recognized!")
+
+    def get_weight(self, vote, experiments_to_make, inf, variant):
+        if vote == experiments_to_make:
+            return inf
+        if variant == "linear":
+            return vote
+        if variant == "quadratic":
+            return vote ** 2
+        if variant == "cubic":
+            return vote ** 3
+        raise Exception("The variant was not recognized!")
+
+    def dijkstra(self, original_A, votes, experiments_to_make, variant="linear"):
+        G = nx.from_numpy_matrix(original_A.clone().detach().numpy())
+        _votes = votes.clone().detach().numpy()
+        length_of_query = 33 # TODO fake it!
+        inf = self.get_infinite_length(length_of_query, experiments_to_make, variant)
+
+        def weight_function(u, v, direction):
+            vote = _votes[v]
+            weight = self.get_weight(vote, experiments_to_make, inf, variant)
+            return weight
+
+        # If majority of the experiments agree on a node, include it as a source for Dijkstra.
+        source_threshold = experiments_to_make // 2
+        sources = np.argwhere(_votes < source_threshold)[0]
+        # sources = [idx for idx in range(len(_votes)) if _votes[idx] < experiments_to_make//2]
+
+        dijkstra_votes = np.zeros_like(_votes)
+
+        # Run dijkstra for each source and save votes
+        for source in sources:
+            dijkstra_result = nx.single_source_dijkstra_path_length(G, source, weight=weight_function)
+            nodes_in_ascending_length_from_source = dijkstra_result.keys()
+            best_nodes = list(nodes_in_ascending_length_from_source)[:length_of_query] # TODO eventuelt minimum length_of_query, men tag flere med, hvis der er tie ved limit
+            for idx in best_nodes:
+                dijkstra_votes[idx] += 1
+
+        # If majority of the sources agree on a node, include it in solution
+        solution_threshold = len(sources)//2
+        v_list = [0 if vote > solution_threshold else 1 for vote in dijkstra_votes]
+        v = torch.tensor(v_list)
+
+        return v
 
 class SubgraphIsomorphismSolver:
 

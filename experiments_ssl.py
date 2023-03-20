@@ -16,9 +16,13 @@ import sys
 
 
 
-from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import balanced_accuracy_score, precision_recall_fscore_support
 def balanced_acc(y_true, y_pred):
     return balanced_accuracy_score(y_true, y_pred)
+
+def prec_recall_fscore(y_true, y_pred):
+    prec, recall, fscore, _ = precision_recall_fscore_support(y_true, y_pred)
+    return prec, recall, fscore
 
 def accur(y_true, y_pred):
     counter = 0
@@ -53,11 +57,11 @@ def run_opt(edgefile,part_nodes, mu=1):
     condac = nx.conductance(G, part_nodes)
     print(f"Conductance equals to {condac}")
 
-    prune_graph(G, part_nodes) # TODO gør noget med G, lav A ud fra G? Vær opmærksom på om originale indices stadig passer...
+    # prune_graph(G, part_nodes) # TODO gør noget med G, lav A ud fra G? Vær opmærksom på om originale indices stadig passer...
 
-    if condac == 0:
-        print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
-        return (0, 0, 0)
+    # if condac == 0:
+    #    print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
+    #    return (0, 0, 0)
 
     color_map=[]
     for node in G:
@@ -113,69 +117,23 @@ def run_opt(edgefile,part_nodes, mu=1):
 
 
     subgraph_isomorphism_solver = SubgraphIsomorphismSolver(A, ref_spectrum, problem_params, solver_params)
-    mu_MS_list = np.linspace(10*1e0,10*1e2,2)
 
-    threshold_E = False
-    if True:
-        problem_params = {'mu_spectral': 1,
-                          'mu_l21': 0,
-                          'mu_MS': mu,# / (c ** 2), #The μ regularizer eq. 11
-                          'mu_split': 0,
-                          'mu_trace': 0.0,
-                          'trace_val': 0,
-                          'weighted_flag': False
-                          }
-        subgraph_isomorphism_solver.set_problem_params(problem_params)
-        v, E = \
-            subgraph_isomorphism_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
+    problem_params = {'mu_spectral': 1,
+                      'mu_l21': 0,
+                      'mu_MS': mu,# / (c ** 2), #The μ regularizer eq. 11
+                      'mu_split': 0,
+                      'mu_trace': 0.0,
+                      'trace_val': 0,
+                      'weighted_flag': False
+                      }
+    subgraph_isomorphism_solver.set_problem_params(problem_params)
 
-        v_binary, E_binary = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy())
-        v_bin_spectral, _ = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy(), threshold_algo="spectral")
-        v_bin_smallest, _ = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy(), threshold_algo="smallest")
-        gt_inidicator = v_gt
-        gt_inidicator[gt_inidicator>0]=1 
+    random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, 0) # Faked original balanced accuracy, can probably delete anyway
+    v_randomized, _ = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
 
-        original_accuracy = accur(v_gt, v_binary.clone().detach().numpy())
-        original_balanced = balanced_acc(v_gt, v_binary.clone().detach().numpy())
-        print("Original balanced accuracy:", original_balanced)
-        original_balanced_spectral = balanced_acc(v_gt, v_bin_spectral.clone().detach().numpy())
-        print("Original balanced with spectral threshold algo:", original_balanced_spectral)
-        original_balanced_smallest = balanced_acc(v_gt, v_bin_smallest.clone().detach().numpy())
-        print("Original balanced with smallest threshold algo:", original_balanced_smallest)
-
-        if original_balanced > 0.9:
-            print("Original accuracy was already high. Skipping.")
-            return (original_accuracy, original_balanced, condac)
-
-        random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, original_balanced)
-        v_randomized, _, solutions = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
-
-        v_bin_spectral, _ = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy(), threshold_algo="spectral")
-        v_bin_smallest, _ = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy(), threshold_algo="smallest")
-        gt_inidicator = v_gt
-        gt_inidicator[gt_inidicator>0]=1 
-
-        original_accuracy = accur(v_gt, v_binary.clone().detach().numpy())
-        original_balanced = balanced_acc(v_gt, v_binary.clone().detach().numpy())
-        print("Original balanced accuracy:", original_balanced)
-        original_balanced_spectral = balanced_acc(v_gt, v_bin_spectral.clone().detach().numpy())
-        print("Original balanced with spectral threshold algo:", original_balanced_spectral)
-        original_balanced_smallest = balanced_acc(v_gt, v_bin_smallest.clone().detach().numpy())
-        print("Original balanced with smallest threshold algo:", original_balanced_smallest)
-
-        if original_balanced > 0.9:
-            print("Original accuracy was already high. Skipping.")
-            return (original_accuracy, original_balanced, condac)
-
-        random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, original_balanced)
-        v_randomized, _, solutions = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
-
-
-        if threshold_E:
-            v_clustered, E_clustered = subgraph_isomorphism_solver.threshold(v_np = v.detach().numpy())
-            subgraph_isomorphism_solver.set_init(E0 = E_clustered, v0 = v)
-
-    #pause(1)
+    v, E = \
+        subgraph_isomorphism_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
+        
     v_binary, E_binary = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy())
     idx_smallest=np.argsort(v.detach().numpy())[:n1]
     v_smallest=np.ones((n,1))
@@ -183,10 +141,21 @@ def run_opt(edgefile,part_nodes, mu=1):
         if i in idx_smallest:
             v_smallest[i]=0
 
+    gt_inidicator = v_gt
+    gt_inidicator[gt_inidicator>0]=1 
+
+    original_accuracy = accur(v_gt, v_binary.clone().detach().numpy())
+    original_balanced = balanced_acc(v_gt, v_binary.clone().detach().numpy())
+    og_precision, og_recall, og_fscore = prec_recall_fscore(v_gt, v_binary.clone().detach().numpy())
+
     randomized_accuracy, randomized_balanced = accur(v_gt, v_randomized.clone().detach().numpy()), balanced_acc(v_gt, v_randomized.clone().detach().numpy())
+    new_precision, new_recall, new_fscore = prec_recall_fscore(v_gt, v_randomized.clone().detach().numpy())
 
     print("Accuracy, original vs randomized", original_accuracy, randomized_accuracy)
     print("balanced Accuracy, original vs randomized", original_balanced, randomized_balanced)  
+    print("Precision, original vs randomized", og_precision, new_precision)
+    print("Recall, original vs randomized", og_recall, new_recall)
+    print("F-score, original vs randomized", og_fscore, new_fscore)
 
     nodes_in_res = count_nodes(v_binary)
     print("nodes in original solution", nodes_in_res)
@@ -303,14 +272,6 @@ def find_best_mu(edgefile,part_nodes):
         print(f"Best Balanced Accuracy is for {best_mu}, equal to {best_ba}")
         if((counter>10) or (best_ba==1.0)): break
     return best_mu
-        
-
-
-
-
- 
-
-
 
 if __name__ == '__main__':
     # graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
