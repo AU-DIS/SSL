@@ -331,7 +331,7 @@ if __name__ == '__main__':
         for folder_no in range(0,folderAmount):
             if use_global_mu and folder_no==0: continue
             perc = [0.1, 0.2, 0.3]
-            clcr = [i/10.0 for i in range(folderAmount)]
+            clcr = [i/10.0 for i in range(11)]
             for per in perc:
                 if folder_no == 0: 
                     best_mu[per] = {}
