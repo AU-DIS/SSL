@@ -72,7 +72,11 @@ class VotingSubgraphIsomorpishmSolver:
         for i in range(experiments_to_make):
             # remove edges
             no_of_edges_to_remove = int(len(edge_list) * edges_removal_array[i])
-            edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
+            #edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
+            G=original_A.numpy(force=True)
+            #print("G",G)
+            #print("amount of bridges",list(nx.bridges(nx.from_numpy_array(G))))
+            #edges_to_remove = nx.bridges(nx.from_numpy_array(G))
             modified_A = remove_edges(original_A.detach().clone(), edges_to_remove)
 
             # solving ssl for the modified graph
@@ -289,6 +293,7 @@ class SubgraphIsomorphismSolver:
             # remove edges
             no_of_edges_to_remove = int(len(edge_list) * edges_removal_array[i])
             edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
+            print("amount of bridges",nx.bridges(nx.from_edgeList(edge_list)))
             modified_A = remove_edges(original_A.detach().clone(), edges_to_remove)
             self.A = modified_A
             self.L = lap_from_adj(modified_A)
