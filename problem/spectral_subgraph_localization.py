@@ -67,7 +67,7 @@ class VotingSubgraphIsomorpishmSolver:
         print()
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        experiments_to_make = 2 # FAKE IT
+        experiments_to_make = 20 # FAKE IT
         edges_removal_array = [0.6] * experiments_to_make  # FAKE IT
         solutions = []
 
