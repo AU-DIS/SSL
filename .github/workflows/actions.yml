@@ -1,6 +1,9 @@
 name: run experiments_ssl.py
 
 on:
+  push: 
+    branches:
+      - master
   schedule:
     - cron:  '0 0 * * *'
 
