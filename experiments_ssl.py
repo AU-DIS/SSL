@@ -324,7 +324,7 @@ def find_best_mu(edgefile,part_nodes):
 
 if __name__ == '__main__':
     #graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
-    graph_names = ['ant']
+    graph_names = ['football']
     conductances = []
     balanced_accuracies = []
     accuracies = []
@@ -339,7 +339,7 @@ if __name__ == '__main__':
         best_mu = {}
         best_m_par = 0
         counter_m_par = 0
-        folderAmount = 1
+        folderAmount = 2
         for folder_no in range(0,folderAmount):
             if use_global_mu and folder_no==0: continue
             perc = [0.1, 0.2, 0.3]
