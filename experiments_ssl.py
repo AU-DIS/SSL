@@ -16,9 +16,19 @@ import sys
 
 
 
-from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import balanced_accuracy_score, recall_score, precision_score, f1_score
+
 def balanced_acc(y_true, y_pred):
     return balanced_accuracy_score(y_true, y_pred)
+
+def recall(y_true, y_pred):
+    return recall_score(y_true, y_pred)
+
+def precision(y_true, y_pred):
+    return precision_score(y_true, y_pred)
+
+def f1(y_true, y_pred):
+    return f1_score(y_true, y_pred)
 
 def accur(y_true, y_pred):
     counter = 0
@@ -55,9 +65,9 @@ def run_opt(edgefile,part_nodes, mu=1):
 
     prune_graph(G, part_nodes) # TODO gør noget med G, lav A ud fra G? Vær opmærksom på om originale indices stadig passer...
 
-    if condac == 0:
-        print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
-        return (0, 0, 0)
+    # if condac == 0:
+    #     print("Conductance was 0, so we skip (the algorithm already works well on these graphs)")
+    #     return (0, 0, 0)
 
     color_map=[]
     for node in G:
@@ -143,9 +153,9 @@ def run_opt(edgefile,part_nodes, mu=1):
         original_balanced_smallest = balanced_acc(v_gt, v_bin_smallest.clone().detach().numpy())
         print("Original balanced with smallest threshold algo:", original_balanced_smallest)
 
-        if original_balanced > 0.9:
-            print("Original accuracy was already high. Skipping.")
-            return (original_accuracy, original_balanced, condac)
+        #if original_balanced > 0.9:
+        #    print("Original accuracy was already high. Skipping.")
+        #    return (original_accuracy, original_balanced, condac)
 
         random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, original_balanced)
         v_randomized, _, solutions = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
@@ -163,9 +173,9 @@ def run_opt(edgefile,part_nodes, mu=1):
         original_balanced_smallest = balanced_acc(v_gt, v_bin_smallest.clone().detach().numpy())
         print("Original balanced with smallest threshold algo:", original_balanced_smallest)
 
-        if original_balanced > 0.9:
-            print("Original accuracy was already high. Skipping.")
-            return (original_accuracy, original_balanced, condac)
+        # if original_balanced > 0.9:
+        #     print("Original accuracy was already high. Skipping.")
+        #     return (original_accuracy, original_balanced, condac)
 
         random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, original_balanced)
         v_randomized, _, solutions = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
@@ -195,7 +205,7 @@ def run_opt(edgefile,part_nodes, mu=1):
     print("nodes in voting solution", nodes_in_random_res)
 
     # Returning original accuracy
-    return (accur(v_gt, v_binary.clone().detach().numpy()), balanced_acc(v_gt, v_binary.clone().detach().numpy()), condac)
+    return accur(v_gt, v_binary.clone().detach().numpy()), balanced_acc(v_gt, v_binary.clone().detach().numpy()), condac, recall(v_gt, v_binary.clone().detach().numpy()), precision(v_gt, v_binary.clone().detach().numpy()), f1(v_gt, v_binary.clone().detach().numpy())
 
 def count_nodes(v_binary):
     return len(v_binary) - np.count_nonzero(v_binary)
@@ -313,8 +323,15 @@ def find_best_mu(edgefile,part_nodes):
 
 
 if __name__ == '__main__':
-    # graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
-    graph_names = ['highschool']
+    graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
+    #graph_names = ['renyi_200_50']
+    conductances = []
+    balanced_accuracies = []
+    accuracies = []
+    recalls = []
+    precisions = []
+    f1s = []
+    graphs = []
     use_global_mu = True
     for graph_name in graph_names:
         res_dict={}
@@ -349,17 +366,46 @@ if __name__ == '__main__':
                         counter_m_par += 1
                     else:
                         if use_global_mu:
-                            (acc, bal_acc, condac) =run_opt(edgefile,query_nodes, 0.2)
+                            acc, bal_acc, condac, recall_s, precision_s, f1_s =run_opt(edgefile,query_nodes, 0.2)
                             print(f"Balanced Accuracy {bal_acc}")
                             print(f"Accuracy {acc}\n")
+                            accuracies.append(acc)
+                            balanced_accuracies.append(bal_acc)
+                            recalls.append(recall_s)
+                            precisions.append(precision_s)
+                            f1s.append(f1_s)
+                            conductances.append(condac)
                             res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
                         else:
-                            (acc, bal_acc, condac) =run_opt(edgefile,query_nodes, best_mu[per][lr])
+                            acc, bal_acc, condac, recall_s, precision_s, f1_s =run_opt(edgefile,query_nodes, best_mu[per][lr])
                             print(f"Balanced Accuracy {bal_acc}")
                             print(f"Accuracy {acc}\n")
+                            accuracies.append(acc)
+                            balanced_accuracies.append(bal_acc)
+                            recalls.append(recall_s)
+                            precisions.append(precision_s)
+                            f1s.append(f1_s)
+                            conductances.append(condac)
                             res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc]
             print(res_dict)
+            f = open('condutance.txt', 'a+')
+            f.write(str(conductances))
 
+            #do the same for the other metrics
+            f = open('balanced_accuracy.txt', 'a+')
+            f.write(str(balanced_accuracies))
+            f = open('accuracy.txt', 'a+')
+            f.write(str(accuracies))
+            f = open('recall.txt', 'a+')
+            f.write(str(recalls))
+            f = open('precision.txt', 'a+')
+            f.write(str(precisions))
+            f = open('f1.txt', 'a+')
+            f.write(str(f1s))
+
+            data_file = open(f'{graph_name}.txt', 'w')
+            data_file.write(str(res_dict))
+            
 
             if(True):
                 name_to_save = graph_name+"_"+str(folder_no)
@@ -369,6 +415,6 @@ if __name__ == '__main__':
                         os.makedirs('./pkl_results/'+graph_name)
                 with open(directo, 'wb') as f:
                     pickle.dump(res_dict, f)
-            #sys.exit()
+            #sys.exit(
 
 

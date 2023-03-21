@@ -167,7 +167,7 @@ class VotingSubgraphIsomorpishmSolver:
         fig.savefig("balanced_acc.png")  # Save the figure to a file.
         print("recall",recalls)
         print("precision",precisions)
-        
+
                # Finding the voting majority
         print("Finding final majority")
         v = find_voting_majority(votes, experiments_to_make, threshold = 0.2)
