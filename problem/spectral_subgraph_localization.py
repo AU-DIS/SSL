@@ -21,6 +21,7 @@ from time import sleep
 from scipy.linalg import qr, pinv
 from sklearn.cluster import SpectralClustering
 from enum import Enum
+from problem.dijkstra import DijkstraSolution
 
 
 def block_stochastic_graph(n1, n2, p_parts=0.7, p_off=0.1):
@@ -78,7 +79,7 @@ class VotingSubgraphIsomorpishmSolver:
     def solve(self, max_outer_iters=10, max_inner_iters=10, show_iter=10, verbose=True):
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        experiments_to_make = 50 # FAKE IT
+        experiments_to_make = 3 # FAKE IT
         edges_removal_array = [0.4] * experiments_to_make # FAKE IT
  
         n = original_A.shape[0]
@@ -160,79 +161,14 @@ class VotingSubgraphIsomorpishmSolver:
         if algo == Solution_algo.THRESHOLD:
             v = find_voting_majority(votes, experiments_to_make, threshold)
         elif algo == Solution_algo.DIJKSTRA:
-            v = self.dijkstra(original_A, votes, experiments_to_make, variant="cubic", threshold_percentage=threshold_percentage)
+            dijkstra = DijkstraSolution(original_A, votes, experiments_to_make, "cubic", threshold_percentage)
+            v = dijkstra.solution()
 
         if v is None:
             raise Exception("Should have found the final vertices for the solution, but did not find any!")
 
         E = SubgraphIsomorphismSolver.E_from_v(v.detach(), original_A)
         return v, E
-
-    def get_infinite_length(self, length_of_query, experiments_to_make, variant):
-        if variant == "linear":
-            return length_of_query * experiments_to_make + 1
-        if variant == "quadratic":
-            return length_of_query * experiments_to_make**2 + 1
-        if variant == "cubic":
-            return length_of_query * experiments_to_make**3 + 1
-        raise Exception("The variant was not recognized!")
-
-    def get_weight(self, vote, experiments_to_make, inf, variant):
-        if vote == experiments_to_make:
-            return inf
-        if variant == "linear":
-            return vote
-        if variant == "quadratic":
-            return vote ** 2
-        if variant == "cubic":
-            return vote ** 3
-        raise Exception("The variant was not recognized!")
-
-    def update_dijkstra_votes(self, dijkstra_votes, dijkstra_result, length_of_query):
-        longest_approved_distance = None
-        for counter, (idx, distance) in enumerate(dijkstra_result.items()):
-            # Multiple nodes have the same length, therefore the threshold is extended
-            if counter >= length_of_query and distance != longest_approved_distance:
-                return
-            
-            # Exactly |Vq| nodes have been collected. Only if any other node have same distance, it will be approved
-            if counter == length_of_query - 1:
-                longest_approved_distance = distance
-
-            dijkstra_votes[idx] += 1
-
-    def dijkstra(self, original_A, votes, experiments_to_make, variant="linear", threshold_percentage = 0.5):
-        G = nx.from_numpy_matrix(original_A.clone().detach().numpy())
-        _votes = votes.clone().detach().numpy()
-        length_of_query = 33 # TODO fake it!
-        inf = self.get_infinite_length(length_of_query, experiments_to_make, variant)
-
-        def weight_function(u, v, direction):
-            vote = _votes[v]
-            weight = self.get_weight(vote, experiments_to_make, inf, variant)
-            return weight
-
-        # If majority of the experiments agree on a node, include it as a source for Dijkstra.
-        _threshold_percentage = 1 - threshold_percentage
-        source_threshold = int(experiments_to_make * _threshold_percentage)
-        sources = [idx for idx in range(len(_votes)) if _votes[idx] <= source_threshold]
-
-        print("length of sources:", len(sources))
-        print("sources:", sources)
-
-        # Run dijkstra for each source and save votes
-        dijkstra_votes = np.zeros_like(_votes)
-        for source in sources:
-            dijkstra_result = nx.single_source_dijkstra_path_length(G, source, weight=weight_function)
-            self.update_dijkstra_votes(dijkstra_votes, dijkstra_result, length_of_query)
-
-        # If majority of the sources agree on a node, include it in solution
-        # solution_threshold = len(sources)//2
-        solution_threshold = int(len(sources) * threshold_percentage)
-        v_list = [0 if vote > solution_threshold else 1 for vote in dijkstra_votes]
-        v = torch.tensor(v_list)
-
-        return v
 
 class SubgraphIsomorphismSolver:
 

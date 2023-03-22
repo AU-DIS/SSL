@@ -284,7 +284,7 @@ def find_best_mu(edgefile,part_nodes):
 
 if __name__ == '__main__':
     # graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
-    graph_names = ['highschool']
+    graph_names = ['football']
     use_global_mu = True
     for graph_name in graph_names:
         res_dict={}
