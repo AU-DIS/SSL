@@ -23,7 +23,6 @@ from sklearn.cluster import SpectralClustering
 from enum import Enum
 from problem.dijkstra import DijkstraSolution
 
-
 def block_stochastic_graph(n1, n2, p_parts=0.7, p_off=0.1):
     n = n1 + n2
     p11 = set_diag_zero(p_parts * torch.ones(n1, n1))
@@ -103,59 +102,15 @@ class VotingSubgraphIsomorpishmSolver:
             v_binary, _ = solver.threshold(v_np=v.detach().numpy())
             votes += v_binary
 
+        v, E = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.3)
+        
+        # Pretty printing solutinos for experimenting purposes
+        print_solutions(original_A, votes, experiments_to_make, self.v_gt)
 
-        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.1)
-        print("0.1 Threshold solution:")
-        rate_solution(self.v_gt, v)
-
-        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD)
-        print("0.2 Threshold solution:")
-        rate_solution(self.v_gt, v)
-
-        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.3)
-        print("0.3 Threshold solution:")
-        rate_solution(self.v_gt, v)
-
-        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.4)
-        print("0.4 Threshold solution:")
-        rate_solution(self.v_gt, v)
-
-        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.5)
-        print("0.5 Threshold solution:")
-        rate_solution(self.v_gt, v)
-
-        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.6)
-        print("0.6 Threshold solution:")
-        rate_solution(self.v_gt, v)
-
-        print("Dijkstra solution 0.1 source threshold:")
-        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.1)
-        rate_solution(self.v_gt, v)
-
-        print("Dijkstra solution 0.2 source threshold:")
-        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.2)
-        rate_solution(self.v_gt, v)
-
-        print("Dijkstra solution 0.3 source threshold:")
-        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.3)
-        rate_solution(self.v_gt, v)
-
-        print("Dijkstra solution 0.4 source threshold:")
-        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.4)
-        rate_solution(self.v_gt, v)
-
-        print("Dijkstra solution 0.5 source threshold:")
-        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA)
-        rate_solution(self.v_gt, v)
-
-        print("Dijkstra solution 0.6 source threshold:")
-        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.6)
-        rate_solution(self.v_gt, v)
-
-        # Return v_binary and e_binary instead of v and E!
         return v, E 
 
-    def find_solution(self, original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.2, threshold_percentage=0.5):
+    @staticmethod
+    def find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.2, threshold_percentage=0.5):
         v = None
 
         if algo == Solution_algo.THRESHOLD:
@@ -963,6 +918,54 @@ def edgelist_to_adjmatrix(edgeList_file):
 
     return a
 
+def print_solutions(original_A, votes, experiments_to_make, v_gt):
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.1)
+    print("0.1 Threshold solution:")
+    rate_solution(v_gt, v)
+
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD)
+    print("0.2 Threshold solution:")
+    rate_solution(v_gt, v)
+
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.3)
+    print("0.3 Threshold solution:")
+    rate_solution(v_gt, v)
+
+    v, _  = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.4)
+    print("0.4 Threshold solution:")
+    rate_solution(v_gt, v)
+
+    v, _  = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.5)
+    print("0.5 Threshold solution:")
+    rate_solution(v_gt, v)
+
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.6)
+    print("0.6 Threshold solution:")
+    rate_solution(v_gt, v)
+
+    print("Dijkstra solution 0.1 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.1)
+    rate_solution(v_gt, v)
+
+    print("Dijkstra solution 0.2 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.2)
+    rate_solution(v_gt, v)
+
+    print("Dijkstra solution 0.3 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.3)
+    rate_solution(v_gt, v)
+
+    print("Dijkstra solution 0.4 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.4)
+    rate_solution(v_gt, v)
+
+    print("Dijkstra solution 0.5 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA)
+    rate_solution(v_gt, v)
+
+    print("Dijkstra solution 0.6 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.6)
+    rate_solution(v_gt, v)
 
 if __name__ == '__main__':
     torch.manual_seed(12)
