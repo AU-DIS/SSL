@@ -127,7 +127,7 @@ def run_opt(edgefile,part_nodes, mu=1):
 
     print("Original balanced:", original_balanced)
 
-    if original_balanced > 0.75:
+    if original_balanced > 0.9:
         print("original balance too good, skipping")
         return 0, 0, 0
 
@@ -284,7 +284,7 @@ def find_best_mu(edgefile,part_nodes):
 
 if __name__ == '__main__':
     # graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
-    graph_names = ['football']
+    graph_names = ['highschool']
     use_global_mu = True
     for graph_name in graph_names:
         res_dict={}
@@ -296,7 +296,7 @@ if __name__ == '__main__':
         for folder_no in range(0,folderAmount):
             if use_global_mu and folder_no==0: continue
             perc = [0.1, 0.2, 0.3]
-            clcr = [i/10.0 for i in range(11)]
+            clcr = [i/10.0 for i in range(1, 11)]
             for per in perc:
                 if folder_no == 0: 
                     best_mu[per] = {}

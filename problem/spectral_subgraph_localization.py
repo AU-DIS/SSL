@@ -78,7 +78,7 @@ class VotingSubgraphIsomorpishmSolver:
     def solve(self, max_outer_iters=10, max_inner_iters=10, show_iter=10, verbose=True):
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        experiments_to_make = 3 # FAKE IT
+        experiments_to_make = 25 # FAKE IT
         edges_removal_array = [0.4] * experiments_to_make # FAKE IT
  
         n = original_A.shape[0]
@@ -110,13 +110,13 @@ class VotingSubgraphIsomorpishmSolver:
         return v, E 
 
     @staticmethod
-    def find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.2, threshold_percentage=0.5):
+    def find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.2, threshold_percentage=0.5, dijkstra_majority_variant="constant"):
         v = None
 
         if algo == Solution_algo.THRESHOLD:
             v = find_voting_majority(votes, experiments_to_make, threshold)
         elif algo == Solution_algo.DIJKSTRA:
-            dijkstra = DijkstraSolution(original_A, votes, experiments_to_make, "cubic", threshold_percentage)
+            dijkstra = DijkstraSolution(original_A, votes, experiments_to_make, "cubic", threshold_percentage, dijkstra_majority_variant)
             v = dijkstra.solution()
 
         if v is None:
@@ -965,6 +965,30 @@ def print_solutions(original_A, votes, experiments_to_make, v_gt):
 
     print("Dijkstra solution 0.6 source threshold:")
     v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.6)
+    rate_solution(v_gt, v)
+
+    print("WEIGHTED Dijkstra solution 0.1 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.1, dijkstra_majority_variant="linear")
+    rate_solution(v_gt, v)
+
+    print("WEIGHTED Dijkstra solution 0.2 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.2, dijkstra_majority_variant="linear")
+    rate_solution(v_gt, v)
+
+    print("WEIGHTED Dijkstra solution 0.3 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.3, dijkstra_majority_variant="linear")
+    rate_solution(v_gt, v)
+
+    print("WEIGHTED Dijkstra solution 0.4 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.4, dijkstra_majority_variant="linear")
+    rate_solution(v_gt, v)
+
+    print("WEIGHTED Dijkstra solution 0.5 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.5, dijkstra_majority_variant="linear")
+    rate_solution(v_gt, v)
+
+    print("WEIGHTED Dijkstra solution 0.6 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.6, dijkstra_majority_variant="linear")
     rate_solution(v_gt, v)
 
 if __name__ == '__main__':

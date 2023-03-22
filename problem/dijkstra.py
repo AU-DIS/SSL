@@ -3,13 +3,14 @@ import networkx as nx
 import numpy as np
 
 class DijkstraSolution:
-    def __init__(self, original_A, votes, experiments_to_make, variant, threshold_percentage):
+    def __init__(self, original_A, votes, experiments_to_make, weight_variant, threshold_percentage, majority_variant):
         self.original_A = original_A
         self.votes = votes
         self.experiments_to_make = experiments_to_make
-        self.variant = variant
+        self.variant = weight_variant
         self.threshold_percentage = threshold_percentage
-        self.length_of_query = 12 # TODO fake it, tilføjes senere som argument
+        self.length_of_query = 33 # TODO fake it, tilføjes senere som argument
+        self.majority_variant = majority_variant
         self.inf = self.__get_infinite_length()
 
     def __get_infinite_length(self):
@@ -32,7 +33,7 @@ class DijkstraSolution:
             return vote ** 3
         raise Exception("The variant was not recognized!")
 
-    def __update_dijkstra_votes(self, dijkstra_votes, dijkstra_result):
+    def __update_dijkstra_votes(self, dijkstra_votes, dijkstra_result, source_votes):
         longest_approved_distance = None
         for counter, (idx, distance) in enumerate(dijkstra_result.items()):
             # Multiple nodes have the same length, therefore the threshold is extended
@@ -43,7 +44,27 @@ class DijkstraSolution:
             if counter == self.length_of_query - 1:
                 longest_approved_distance = distance
 
-            dijkstra_votes[idx] += 1
+            dijkstra_votes[idx] += self.__solution_weight(source_votes)
+
+    def __solution_weight(self, source_votes):
+        if self.majority_variant == "constant":
+            return 1
+        if self.majority_variant == "linear":
+            return 1 / (1 + source_votes)
+        raise Exception("Majority variant was not recognized!")
+
+    def __find_solution_majority(self, dijkstra_votes, no_of_sources, most_source_votes):
+        weight = self.__solution_weight(most_source_votes)
+        solution_threshold = int(weight * no_of_sources * self.threshold_percentage)
+        v_list = [0 if vote > solution_threshold else 1 for vote in dijkstra_votes]
+
+        return torch.tensor(v_list)
+
+    def __find_sources(self, votes):
+        _threshold_percentage = 1 - self.threshold_percentage
+        source_threshold = int(self.experiments_to_make * _threshold_percentage)
+        sources = [idx for idx in range(len(votes)) if votes[idx] <= source_threshold]
+        return sources
 
     def solution(self):
         G = nx.from_numpy_matrix(self.original_A.clone().detach().numpy())
@@ -55,9 +76,7 @@ class DijkstraSolution:
             return weight
 
         # If majority of the experiments agree on a node, include it as a source for Dijkstra.
-        _threshold_percentage = 1 - self.threshold_percentage
-        source_threshold = int(self.experiments_to_make * _threshold_percentage)
-        sources = [idx for idx in range(len(_votes)) if _votes[idx] <= source_threshold]
+        sources = self.__find_sources(_votes)
 
         print("length of sources:", len(sources))
         print("sources:", sources)
@@ -66,12 +85,9 @@ class DijkstraSolution:
         dijkstra_votes = np.zeros_like(_votes)
         for source in sources:
             dijkstra_result = nx.single_source_dijkstra_path_length(G, source, weight=weight_function)
-            self.__update_dijkstra_votes(dijkstra_votes, dijkstra_result)
+            self.__update_dijkstra_votes(dijkstra_votes, dijkstra_result, _votes[source])
 
         # If majority of the sources agree on a node, include it in solution
-        # solution_threshold = len(sources)//2
-        solution_threshold = int(len(sources) * self.threshold_percentage)
-        v_list = [0 if vote > solution_threshold else 1 for vote in dijkstra_votes]
-        v = torch.tensor(v_list)
+        v = self.__find_solution_majority(dijkstra_votes, len(sources), min(_votes))
 
         return v
