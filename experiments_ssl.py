@@ -117,6 +117,19 @@ def run_opt(edgefile,part_nodes, mu=1):
 
 
     subgraph_isomorphism_solver = SubgraphIsomorphismSolver(A, ref_spectrum, problem_params, solver_params)
+    v, E = \
+        subgraph_isomorphism_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
+    v_binary, E_binary = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy())
+    
+    gt_inidicator = v_gt
+    gt_inidicator[gt_inidicator>0]=1 
+    original_balanced = balanced_acc(v_gt, v_binary.clone().detach().numpy())
+
+    print("Original balanced:", original_balanced)
+
+    if original_balanced > 0.75:
+        print("original balance too good, skipping")
+        return 0, 0, 0
 
     problem_params = {'mu_spectral': 1,
                       'mu_l21': 0,
@@ -128,11 +141,10 @@ def run_opt(edgefile,part_nodes, mu=1):
                       }
     subgraph_isomorphism_solver.set_problem_params(problem_params)
 
+
     random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, 0) # Faked original balanced accuracy, can probably delete anyway
     v_randomized, _ = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
 
-    v, E = \
-        subgraph_isomorphism_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
         
     v_binary, E_binary = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy())
     idx_smallest=np.argsort(v.detach().numpy())[:n1]
@@ -140,9 +152,6 @@ def run_opt(edgefile,part_nodes, mu=1):
     for i in range(n):
         if i in idx_smallest:
             v_smallest[i]=0
-
-    gt_inidicator = v_gt
-    gt_inidicator[gt_inidicator>0]=1 
 
     original_accuracy = accur(v_gt, v_binary.clone().detach().numpy())
     original_balanced = balanced_acc(v_gt, v_binary.clone().detach().numpy())

@@ -39,12 +39,27 @@ def block_stochastic_graph(n1, n2, p_parts=0.7, p_off=0.1):
 
     return p
 
-from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import balanced_accuracy_score, precision_recall_fscore_support
 def balanced_acc(y_true, y_pred):
     return balanced_accuracy_score(y_true, y_pred)
 
 def count_nodes(v_binary):
     return len(v_binary) - np.count_nonzero(v_binary)
+
+def prec_recall_fscore(y_true, y_pred):
+    prec, recall, fscore, _ = precision_recall_fscore_support(y_true, y_pred)
+    return prec, recall, fscore
+
+def rate_solution(v_gt, v_binary):
+    print("Balanced accuracy:", balanced_acc(v_gt, v_binary))
+
+    prec, recall, fscore = prec_recall_fscore(v_gt, v_binary)
+    print("Precision:", prec)
+    print("Recall:", recall)
+    print("F-score:", fscore)
+
+    print("Nodes in solution:", count_nodes(v_binary))
+    print()
 
 class Solution_algo(Enum):
     THRESHOLD = 1
@@ -63,8 +78,8 @@ class VotingSubgraphIsomorpishmSolver:
     def solve(self, max_outer_iters=10, max_inner_iters=10, show_iter=10, verbose=True):
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        experiments_to_make = 2 # FAKE IT
-        edges_removal_array = [0.5] * experiments_to_make  # FAKE IT
+        experiments_to_make = 50 # FAKE IT
+        edges_removal_array = [0.4] * experiments_to_make # FAKE IT
  
         n = original_A.shape[0]
         votes = torch.zeros(n)
@@ -87,18 +102,65 @@ class VotingSubgraphIsomorpishmSolver:
             v_binary, _ = solver.threshold(v_np=v.detach().numpy())
             votes += v_binary
 
+
+        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.1)
+        print("0.1 Threshold solution:")
+        rate_solution(self.v_gt, v)
+
+        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD)
+        print("0.2 Threshold solution:")
+        rate_solution(self.v_gt, v)
+
+        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.3)
+        print("0.3 Threshold solution:")
+        rate_solution(self.v_gt, v)
+
+        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.4)
+        print("0.4 Threshold solution:")
+        rate_solution(self.v_gt, v)
+
+        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.5)
+        print("0.5 Threshold solution:")
+        rate_solution(self.v_gt, v)
+
+        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.6)
+        print("0.6 Threshold solution:")
+        rate_solution(self.v_gt, v)
+
+        print("Dijkstra solution 0.1 source threshold:")
+        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.1)
+        rate_solution(self.v_gt, v)
+
+        print("Dijkstra solution 0.2 source threshold:")
+        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.2)
+        rate_solution(self.v_gt, v)
+
+        print("Dijkstra solution 0.3 source threshold:")
+        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.3)
+        rate_solution(self.v_gt, v)
+
+        print("Dijkstra solution 0.4 source threshold:")
+        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.4)
+        rate_solution(self.v_gt, v)
+
+        print("Dijkstra solution 0.5 source threshold:")
         v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA)
+        rate_solution(self.v_gt, v)
+
+        print("Dijkstra solution 0.6 source threshold:")
+        v, E = self.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.6)
+        rate_solution(self.v_gt, v)
 
         # Return v_binary and e_binary instead of v and E!
         return v, E 
 
-    def find_solution(self, original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD):
+    def find_solution(self, original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.2, threshold_percentage=0.5):
         v = None
 
         if algo == Solution_algo.THRESHOLD:
-            v = find_voting_majority(votes, experiments_to_make, threshold=0.2)
+            v = find_voting_majority(votes, experiments_to_make, threshold)
         elif algo == Solution_algo.DIJKSTRA:
-            v = self.dijkstra(original_A, votes, experiments_to_make, variant="cubic")
+            v = self.dijkstra(original_A, votes, experiments_to_make, variant="cubic", threshold_percentage=threshold_percentage)
 
         if v is None:
             raise Exception("Should have found the final vertices for the solution, but did not find any!")
@@ -126,7 +188,20 @@ class VotingSubgraphIsomorpishmSolver:
             return vote ** 3
         raise Exception("The variant was not recognized!")
 
-    def dijkstra(self, original_A, votes, experiments_to_make, variant="linear"):
+    def update_dijkstra_votes(self, dijkstra_votes, dijkstra_result, length_of_query):
+        longest_approved_distance = None
+        for counter, (idx, distance) in enumerate(dijkstra_result.items()):
+            # Multiple nodes have the same length, therefore the threshold is extended
+            if counter >= length_of_query and distance != longest_approved_distance:
+                return
+            
+            # Exactly |Vq| nodes have been collected. Only if any other node have same distance, it will be approved
+            if counter == length_of_query - 1:
+                longest_approved_distance = distance
+
+            dijkstra_votes[idx] += 1
+
+    def dijkstra(self, original_A, votes, experiments_to_make, variant="linear", threshold_percentage = 0.5):
         G = nx.from_numpy_matrix(original_A.clone().detach().numpy())
         _votes = votes.clone().detach().numpy()
         length_of_query = 33 # TODO fake it!
@@ -138,22 +213,22 @@ class VotingSubgraphIsomorpishmSolver:
             return weight
 
         # If majority of the experiments agree on a node, include it as a source for Dijkstra.
-        source_threshold = experiments_to_make // 2
-        sources = np.argwhere(_votes < source_threshold)[0]
-        # sources = [idx for idx in range(len(_votes)) if _votes[idx] < experiments_to_make//2]
+        _threshold_percentage = 1 - threshold_percentage
+        source_threshold = int(experiments_to_make * _threshold_percentage)
+        sources = [idx for idx in range(len(_votes)) if _votes[idx] <= source_threshold]
 
-        dijkstra_votes = np.zeros_like(_votes)
+        print("length of sources:", len(sources))
+        print("sources:", sources)
 
         # Run dijkstra for each source and save votes
+        dijkstra_votes = np.zeros_like(_votes)
         for source in sources:
             dijkstra_result = nx.single_source_dijkstra_path_length(G, source, weight=weight_function)
-            nodes_in_ascending_length_from_source = dijkstra_result.keys()
-            best_nodes = list(nodes_in_ascending_length_from_source)[:length_of_query] # TODO eventuelt minimum length_of_query, men tag flere med, hvis der er tie ved limit
-            for idx in best_nodes:
-                dijkstra_votes[idx] += 1
+            self.update_dijkstra_votes(dijkstra_votes, dijkstra_result, length_of_query)
 
         # If majority of the sources agree on a node, include it in solution
-        solution_threshold = len(sources)//2
+        # solution_threshold = len(sources)//2
+        solution_threshold = int(len(sources) * threshold_percentage)
         v_list = [0 if vote > solution_threshold else 1 for vote in dijkstra_votes]
         v = torch.tensor(v_list)
 
