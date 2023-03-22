@@ -317,8 +317,8 @@ class SubgraphIsomorphismSolver:
         print("Please don't go here")
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        edges_removal_array = [0.005, 0.02, 0.1, 0.2, 0.005, 0.02, 0.1, 0.2] 
-        experiments_to_make = 8 # FAKE IT
+        edges_removal_array = [0.005, 0.02]
+        experiments_to_make = 2 # FAKE IT
         nodes_in_result = 31 # FAKE IT
  
         n = original_A.shape[0]
@@ -369,8 +369,8 @@ class SubgraphIsomorphismSolver:
         print("Please don't go here")
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        edges_removal_array = [0.005, 0.02, 0.1, 0.2, 0.005, 0.02, 0.1, 0.2] 
-        experiments_to_make = 8 # FAKE IT
+        edges_removal_array = [0.005, 0.02] 
+        experiments_to_make = 2 # FAKE IT
         nodes_in_result = 31 # FAKE IT
  
         n = original_A.shape[0]
