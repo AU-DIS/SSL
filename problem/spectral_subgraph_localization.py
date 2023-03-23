@@ -1,3 +1,4 @@
+from networkx.algorithms.centrality.betweenness_subset import dijkstra
 import torch
 import numpy as np
 from numpy import histogram, random, random
@@ -19,7 +20,8 @@ from livelossplot.outputs import MatplotlibPlot
 from time import sleep
 from scipy.linalg import qr, pinv
 from sklearn.cluster import SpectralClustering
-
+from enum import Enum
+from problem.dijkstra import DijkstraSolution
 
 def block_stochastic_graph(n1, n2, p_parts=0.7, p_off=0.1):
     n = n1 + n2
@@ -37,7 +39,7 @@ def block_stochastic_graph(n1, n2, p_parts=0.7, p_off=0.1):
 
     return p
 
-from sklearn.metrics import balanced_accuracy_score, recall_score, precision_score, f1_score
+from sklearn.metrics import balanced_accuracy_score, recall_score, precision_score, f1_score, precision_recall_fscore_support
 def balanced_acc(y_true, y_pred):
     return balanced_accuracy_score(y_true, y_pred)
 
@@ -53,6 +55,25 @@ def f1(y_true, y_pred):
 def count_nodes(v_binary):
     return len(v_binary) - np.count_nonzero(v_binary)
 
+def prec_recall_fscore(y_true, y_pred):
+    prec, recall, fscore, _ = precision_recall_fscore_support(y_true, y_pred)
+    return prec, recall, fscore
+
+def rate_solution(v_gt, v_binary):
+    print("Balanced accuracy:", balanced_acc(v_gt, v_binary))
+
+    prec, recall, fscore = prec_recall_fscore(v_gt, v_binary)
+    print("Precision:", prec)
+    print("Recall:", recall)
+    print("F-score:", fscore)
+
+    print("Nodes in solution:", count_nodes(v_binary))
+    print()
+
+class Solution_algo(Enum):
+    THRESHOLD = 1
+    DIJKSTRA = 2
+
 class VotingSubgraphIsomorpishmSolver:
     def __init__(self, A, ref_spectrum, problem_params, solver_params, v_gt, original_algorithm_acc, save_loss_terms=True):
         self.A = A
@@ -64,28 +85,19 @@ class VotingSubgraphIsomorpishmSolver:
         self.original_algorithm_acc = original_algorithm_acc
 
     def solve(self, max_outer_iters=10, max_inner_iters=10, show_iter=10, verbose=True):
-        print()
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
         experiments_to_make = 20 # FAKE IT
-        edges_removal_array = [0.6] * experiments_to_make  # FAKE IT
-        solutions = []
-
-        voting_thresholds = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7]
+        edges_removal_array = [0.4] * experiments_to_make # FAKE IT
  
         n = original_A.shape[0]
         votes = torch.zeros(n)
-        spectral_votes = torch.zeros(n)
-        smallest_votes = torch.zeros(n)
 
         for i in range(experiments_to_make):
+            print(i)
+
             # remove edges
             no_of_edges_to_remove = int(len(edge_list) * edges_removal_array[i])
-            #edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
-            G=original_A.numpy(force=True)
-            #print("G",G)
-            #print("amount of bridges",list(nx.bridges(nx.from_numpy_array(G))))
-            #edges_to_remove = nx.bridges(nx.from_numpy_array(G))
             edges_to_remove = find_random_edges(edge_list, no_of_edges_to_remove)
             modified_A = remove_edges(original_A.detach().clone(), edges_to_remove)
 
@@ -99,82 +111,28 @@ class VotingSubgraphIsomorpishmSolver:
             v_binary, _ = solver.threshold(v_np=v.detach().numpy())
             votes += v_binary
 
-            v_binary_spectral, _ = solver.threshold(v_np=v.detach().numpy(), threshold_algo="spectral")
-            spectral_votes += v_binary_spectral
+        v, E = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.3)
+        
+        # Pretty printing solutinos for experimenting purposes
+        print_solutions(original_A, votes, experiments_to_make, self.v_gt)
 
-            v_binary_smallest, _ = solver.threshold(v_np=v.detach().numpy(), threshold_algo="smallest")
-            smallest_votes += v_binary_smallest
-            recalls = []
-            precisions = []
-            f1s = []
-            balanced_accs = []
-            for threshold in voting_thresholds:
-                v = find_voting_majority(votes, i+1, threshold)
-                E = SubgraphIsomorphismSolver.E_from_v(v.detach(), original_A)
-                balanced_accuracy = balanced_acc(self.v_gt, v)
-                recall_score = recall(self.v_gt, v)
-                precision_score = precision(self.v_gt, v)
-                f1_score = f1(self.v_gt, v)           
-                recalls.append(recall_score)
-                precisions.append(precision_score)
-                f1s.append(f1_score)
-                balanced_accs.append(balanced_accuracy)
-                print(f'Balanced accuracy after {i+1} iterations, with {threshold} voting threshold: {balanced_accuracy}')
+        return v, E 
 
-                comparison_to_orignal = balanced_accuracy - self.original_algorithm_acc
-                print("Comparison to orginal algorithm:", comparison_to_orignal)
-                nodes_used = count_nodes(v)
-                print("Nodes used in solution:", nodes_used)
-                solutions.append((v, E))
-                
-                # Chcking with spectral and smallest threshold algo
-                v = find_voting_majority(spectral_votes, i+1, threshold)
-                balanced_accuracy = balanced_acc(self.v_gt, v)
-                print(f'Balanced accuracy after {i+1} iterations, with {threshold} voting threshold, using spectral threshold algo: {balanced_accuracy}')
-                comparison_to_orignal = balanced_accuracy - self.original_algorithm_acc
-                print("Comparison to orginal algorithm:", comparison_to_orignal)
-                nodes_used = count_nodes(v)
-                print("Nodes used in solution:", nodes_used)
+    @staticmethod
+    def find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.2, threshold_percentage=0.5, dijkstra_majority_variant="constant"):
+        v = None
 
-                v = find_voting_majority(smallest_votes, i+1, threshold)
-                balanced_accuracy = balanced_acc(self.v_gt, v)
-                print(f'Balanced accuracy after {i+1} iterations, with {threshold} voting threshold, using smallest threshold algo: {balanced_accuracy}')
-                comparison_to_orignal = balanced_accuracy - self.original_algorithm_acc
-                print("Comparison to orginal algorithm:", comparison_to_orignal)
-                nodes_used = count_nodes(v)
-                print("Nodes used in solution:", nodes_used)
+        if algo == Solution_algo.THRESHOLD:
+            v = find_voting_majority(votes, experiments_to_make, threshold)
+        elif algo == Solution_algo.DIJKSTRA:
+            dijkstra = DijkstraSolution(original_A, votes, experiments_to_make, "cubic", threshold_percentage, dijkstra_majority_variant)
+            v = dijkstra.solution()
 
-                print()
-                print("-------")
-                print()
-            print("************")
-            print()
+        if v is None:
+            raise Exception("Should have found the final vertices for the solution, but did not find any!")
 
-        # Calculating statistics and creating plots
-        print("Calculating statistics and creating plots")
-        fig, ax = plt.subplots()  # Create a figure containing a single axes.
-        ax.plot(voting_thresholds, recalls)  # Plot some data on the axes.
-        fig.savefig("recall.png")  # Save the figure to a file.
-        fig, ax = plt.subplots()  # Create a figure containing a single axes.
-        ax.plot(voting_thresholds, precisions)  # Plot some data on the axes.
-        fig.savefig("precision.png")  # Save the figure to a file.
-        fig,axis = plt.subplots()
-        axis.plot(voting_thresholds, f1s)
-        fig.savefig("f1.png")
-        balanced_accuracy = balanced_acc(self.v_gt, v)
-        fig, ax = plt.subplots()  # Create a figure containing a single axes.
-        ax.plot(voting_thresholds, balanced_accs)  # Plot some data on the axes.
-        fig.savefig("balanced_acc.png")  # Save the figure to a file.
-        print("recall",recalls)
-        print("precision",precisions)
-
-               # Finding the voting majority
-        print("Finding final majority")
-        v = find_voting_majority(votes, experiments_to_make, threshold = 0.2)
         E = SubgraphIsomorphismSolver.E_from_v(v.detach(), original_A)
-
-        # Return v_binary and e_binary instead of v and E!
-        return v, E, solutions
+        return v, E
 
 class SubgraphIsomorphismSolver:
 
@@ -969,6 +927,78 @@ def edgelist_to_adjmatrix(edgeList_file):
 
     return a
 
+def print_solutions(original_A, votes, experiments_to_make, v_gt):
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.1)
+    print("0.1 Threshold solution:")
+    rate_solution(v_gt, v)
+
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD)
+    print("0.2 Threshold solution:")
+    rate_solution(v_gt, v)
+
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.3)
+    print("0.3 Threshold solution:")
+    rate_solution(v_gt, v)
+
+    v, _  = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.4)
+    print("0.4 Threshold solution:")
+    rate_solution(v_gt, v)
+
+    v, _  = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.5)
+    print("0.5 Threshold solution:")
+    rate_solution(v_gt, v)
+
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.6)
+    print("0.6 Threshold solution:")
+    rate_solution(v_gt, v)
+
+    print("Dijkstra solution 0.1 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.1)
+    rate_solution(v_gt, v)
+
+    print("Dijkstra solution 0.2 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.2)
+    rate_solution(v_gt, v)
+
+    print("Dijkstra solution 0.3 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.3)
+    rate_solution(v_gt, v)
+
+    print("Dijkstra solution 0.4 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.4)
+    rate_solution(v_gt, v)
+
+    print("Dijkstra solution 0.5 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA)
+    rate_solution(v_gt, v)
+
+    print("Dijkstra solution 0.6 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.6)
+    rate_solution(v_gt, v)
+
+    print("WEIGHTED Dijkstra solution 0.1 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.1, dijkstra_majority_variant="linear")
+    rate_solution(v_gt, v)
+
+    print("WEIGHTED Dijkstra solution 0.2 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.2, dijkstra_majority_variant="linear")
+    rate_solution(v_gt, v)
+
+    print("WEIGHTED Dijkstra solution 0.3 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.3, dijkstra_majority_variant="linear")
+    rate_solution(v_gt, v)
+
+    print("WEIGHTED Dijkstra solution 0.4 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.4, dijkstra_majority_variant="linear")
+    rate_solution(v_gt, v)
+
+    print("WEIGHTED Dijkstra solution 0.5 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.5, dijkstra_majority_variant="linear")
+    rate_solution(v_gt, v)
+
+    print("WEIGHTED Dijkstra solution 0.6 source threshold:")
+    v, _ = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.6, dijkstra_majority_variant="linear")
+    rate_solution(v_gt, v)
 
 if __name__ == '__main__':
     torch.manual_seed(12)
