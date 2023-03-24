@@ -3,13 +3,13 @@ import networkx as nx
 import numpy as np
 
 class DijkstraSolution:
-    def __init__(self, original_A, votes, experiments_to_make, weight_variant, threshold_percentage, majority_variant):
+    def __init__(self, original_A, votes, experiments_to_make, weight_variant, threshold_percentage, majority_variant, length_of_query):
         self.original_A = original_A
         self.votes = votes
         self.experiments_to_make = experiments_to_make
         self.variant = weight_variant
         self.threshold_percentage = threshold_percentage
-        self.length_of_query = 12 # TODO fake it, tilføjes senere som argument
+        self.length_of_query = length_of_query
         self.majority_variant = majority_variant
         self.inf = self.__get_infinite_length()
 
