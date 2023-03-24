@@ -4,8 +4,7 @@ on:
   push: 
     branches:
       - master
-  schedule:
-    - cron:  '0 0 * * *'
+      
 
 jobs:
   build:
@@ -28,7 +27,7 @@ jobs:
       - name: execute py script # run main.py
         env:
           SOME_SECRET: ${{ secrets.SOME_SECRET }}
-        run: python action_test_script.py
+        run: python experiments_ssl.py 
           
       - name: commit files
         run: |
