@@ -151,15 +151,15 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     original_balanced = balanced_acc(v_gt, v_binary.clone().detach().numpy())
     og_precision, og_recall, og_fscore = prec_recall_fscore(v_gt, v_binary.clone().detach().numpy())
 
-    experiments_to_make = 20
-    random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make) # Faked original balanced accuracy, can probably delete anyway
+    experiments_to_make = 2
+    random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make=experiments_to_make) # Faked original balanced accuracy, can probably delete anyway
     # v_randomized, _ = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
     votes = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
 
 
     standard_voting_results = []
     for threshold in standard_voting_thresholds:
-        v, _ = VotingSubgraphIsomorpishmSolver.find_solution(A, votes, experiments_to_make, Solution_algo.THRESHOLD, threshold = threshold)
+        v, _ = random_solver.find_solution(A, votes, experiments_to_make, Solution_algo.THRESHOLD, threshold = threshold)
         v_accuracy = accur(v_gt, v.clone().detach().numpy())
         v_balanced_accuracy = balanced_acc(v_gt, v.clone().detach().numpy())
         v_recall = recall(v_gt, v.clone().detach().numpy())
@@ -177,7 +177,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
 
     neighborhood_results = []
     for threshold in neighborhood_thresholds:
-        v, _ = VotingSubgraphIsomorpishmSolver.find_solution(A, votes, experiments_to_make, Solution_algo.DIJKSTRA, threshold_percentage = threshold)
+        v, _ = random_solver.find_solution(A, votes, experiments_to_make, Solution_algo.DIJKSTRA, threshold_percentage = threshold)
         v_accuracy = accur(v_gt, v.clone().detach().numpy())
         v_balanced_accuracy = balanced_acc(v_gt, v.clone().detach().numpy())
         v_recall = recall(v_gt, v.clone().detach().numpy())
@@ -193,8 +193,16 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
                 "f1": v_fscore,
             })
 
+    og_results = {
+                "acc": original_accuracy,
+                "balanced_acc": original_balanced,
+                "precision": og_precision,
+                "recall": og_recall,
+                "f1": og_fscore,
+            }
+
     # Returning original accuracy
-    return standard_voting_results, neighborhood_results, condac
+    return standard_voting_results, neighborhood_results, condac, og_results
 
 def count_nodes(v_binary):
     return len(v_binary) - np.count_nonzero(v_binary)
@@ -325,6 +333,13 @@ if __name__ == '__main__':
     neighborhood_precisions = deepcopy(initial_dict)
     neighborhood_f1s = deepcopy(initial_dict)
 
+    # Lists for original results
+    og_balanced_accuracies = []
+    og_accuracies = []
+    og_recalls = []
+    og_precisions = []
+    og_f1s = []
+
     graphs = []
     use_global_mu = True
     for graph_name in graph_names:
@@ -333,11 +348,11 @@ if __name__ == '__main__':
         best_mu = {}
         best_m_par = 0
         counter_m_par = 0
-        folderAmount = 2
-        for folder_no in range(0,folderAmount):
+        folder_amount = 2
+        for folder_no in range(0,folder_amount):
             if use_global_mu and folder_no==0: continue
             perc = [0.1, 0.2, 0.3]
-            clcr = [i/10.0 for i in range(1, 11)]
+            clcr = [i/10.0 for i in range(1, 4)]
             for per in perc:
                 if folder_no == 0: 
                     best_mu[per] = {}
@@ -361,7 +376,7 @@ if __name__ == '__main__':
                     else:
                         if use_global_mu:
                             # acc, bal_acc, condac, recall_s, precision_s, f1_s =run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
-                            standard_voting_results, neighborhood_results, condac = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
+                            standard_voting_results, neighborhood_results, condac, og_results = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
                             conductances.append(condac)
                             # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
                             for result in standard_voting_results:
@@ -378,8 +393,14 @@ if __name__ == '__main__':
                                 neighborhood_recalls[threshold].append(result["recall"])
                                 neighborhood_precisions[threshold].append(result["precision"])
                                 neighborhood_f1s[threshold].append(result["f1"])
+                            og_balanced_accuracies.append(og_results["balanced_acc"])
+                            og_accuracies.append(og_results["acc"])
+                            og_precisions.append(og_results["precision"])
+                            og_recalls.append(og_results["recall"])
+                            og_f1s.append(og_results["f1"])
+
                         else:
-                            standard_voting_results, neighborhood_results, condac =run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds)
+                            standard_voting_results, neighborhood_results, condac, og_results =run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds)
                             conductances.append(condac)
                             # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
                             for result in standard_voting_results:
@@ -396,7 +417,12 @@ if __name__ == '__main__':
                                 neighborhood_recalls[threshold].append(result["recall"])
                                 neighborhood_precisions[threshold].append(result["precision"])
                                 neighborhood_f1s[threshold].append(result["f1"])
-            print(res_dict)
+                            og_balanced_accuracies.append(og_results["balanced_acc"])
+                            og_accuracies.append(og_results["acc"])
+                            og_precisions.append(og_results["precision"])
+                            og_recalls.append(og_results["recall"])
+                            og_f1s.append(og_results["f1"])
+
             f = open('condutance.txt', 'a+')
             f.write(str(conductances))
 
@@ -441,6 +467,22 @@ if __name__ == '__main__':
             for threshold, values in neighborhood_f1s.items():
                 f = open(f'n_f1_{threshold}.txt', 'w+')
                 f.write(str(values))
+
+            # Write for original results
+            f = open(f'og_balanced_accuracy.txt', 'w+')
+            f.write(str(og_balanced_accuracies))
+
+            f = open(f'og_accuracy.txt', 'w+')
+            f.write(str(og_accuracies))
+
+            f = open(f'og_recall.txt', 'w+')
+            f.write(str(og_recalls))
+
+            f = open(f'og_precision.txt', 'w+')
+            f.write(str(og_precisions))
+
+            f = open(f'og_f1.txt', 'w+')
+            f.write(str(og_f1s))
 
             data_file = open(f'{graph_name}.txt', 'w')
             data_file.write(str(res_dict))

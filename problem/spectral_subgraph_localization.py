@@ -119,8 +119,7 @@ class VotingSubgraphIsomorpishmSolver:
 
         return votes
 
-    @staticmethod
-    def find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.2, threshold_percentage=0.5, dijkstra_majority_variant="constant"):
+    def find_solution(self, original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.2, threshold_percentage=0.5, dijkstra_majority_variant="constant"):
         v = None
 
         if algo == Solution_algo.THRESHOLD:
