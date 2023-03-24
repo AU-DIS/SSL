@@ -9,7 +9,7 @@ class DijkstraSolution:
         self.experiments_to_make = experiments_to_make
         self.variant = weight_variant
         self.threshold_percentage = threshold_percentage
-        self.length_of_query = 33 # TODO fake it, tilføjes senere som argument
+        self.length_of_query = 12 # TODO fake it, tilføjes senere som argument
         self.majority_variant = majority_variant
         self.inf = self.__get_infinite_length()
 
@@ -37,7 +37,8 @@ class DijkstraSolution:
         longest_approved_distance = None
         for counter, (idx, distance) in enumerate(dijkstra_result.items()):
             # Multiple nodes have the same length, therefore the threshold is extended
-            if counter >= self.length_of_query and distance != longest_approved_distance:
+            is_extra_node_approved = distance == longest_approved_distance and distance < self.inf
+            if counter >= self.length_of_query and not is_extra_node_approved:
                 return
             
             # Exactly |Vq| nodes have been collected. Only if any other node have same distance, it will be approved
