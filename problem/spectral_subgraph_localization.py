@@ -75,20 +75,20 @@ class Solution_algo(Enum):
     DIJKSTRA = 2
 
 class VotingSubgraphIsomorpishmSolver:
-    def __init__(self, A, ref_spectrum, problem_params, solver_params, v_gt, original_algorithm_acc, save_loss_terms=True):
+    def __init__(self, A, ref_spectrum, problem_params, solver_params, v_gt, query, save_loss_terms=True):
         self.A = A
         self.ref_spectrum = ref_spectrum
         self.problem_params = problem_params
         self.solver_params = solver_params
         self.save_loss_terms = save_loss_terms
         self.v_gt = v_gt
-        self.original_algorithm_acc = original_algorithm_acc
+        self.query = query
 
     def solve(self, max_outer_iters=10, max_inner_iters=10, show_iter=10, verbose=True):
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        experiments_to_make = 20 # FAKE IT
-        edges_removal_array = [0.4] * experiments_to_make # FAKE IT
+        experiments_to_make = 2 # FAKE IT
+        edges_removal_array = [0.3] * experiments_to_make # FAKE IT
  
         n = original_A.shape[0]
         votes = torch.zeros(n)
@@ -111,12 +111,12 @@ class VotingSubgraphIsomorpishmSolver:
             v_binary, _ = solver.threshold(v_np=v.detach().numpy())
             votes += v_binary
 
-        v, E = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.3)
+        # v, E = VotingSubgraphIsomorpishmSolver.find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.DIJKSTRA, threshold_percentage=0.3)
         
         # Pretty printing solutinos for experimenting purposes
-        print_solutions(original_A, votes, experiments_to_make, self.v_gt)
+        # print_solutions(original_A, votes, experiments_to_make, self.v_gt)
 
-        return v, E 
+        return votes
 
     @staticmethod
     def find_solution(original_A, votes, experiments_to_make, algo=Solution_algo.THRESHOLD, threshold=0.2, threshold_percentage=0.5, dijkstra_majority_variant="constant"):
