@@ -37,8 +37,7 @@ jobs:
         uses: ad-m/github-push-action@v0.6.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: master 
-          
+          branch: master        
   exp2:
     needs: build
     runs-on: ubuntu-latest
@@ -71,9 +70,8 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: master 
-
   exp3:
-    needs: exp2
+    needs: [build,exp2]
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo content
