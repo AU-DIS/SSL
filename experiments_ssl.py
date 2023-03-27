@@ -316,6 +316,7 @@ if __name__ == '__main__':
     percentage_lower_bound = int(sys.argv[2])
     percentage_upper_bound = int(sys.argv[3])
     graph_names = [dataset]
+    
 
     standard_voting_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     neighborhood_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
