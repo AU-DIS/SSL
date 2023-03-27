@@ -434,62 +434,65 @@ if __name__ == '__main__':
 
             # Write results for standard voting 
             Path(f'experiments/{graph_name}').mkdir(parents=True, exist_ok=True)
+            script_dir = os.path.dirname(__file__)
+            rel_path = f'experiments/{graph_name}/'
+            abs_file_path = os.path.join(script_dir, rel_path)
             for threshold, values in standard_voting_balanced_accuracies.items():
-                f = open(f'experiments/{graph_name}/balanced_accuracy_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/balanced_accuracy_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_accuracies.items():
-                f = open(f'experiments/{graph_name}/accuracy_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/accuracy_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_recalls.items():
-                f = open(f'experiments/{graph_name}/recall_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/recall_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_precisions.items():
-                f = open(f'experiments/{graph_name}/precision_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/precision_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_f1s.items():
-                f = open(f'experiments/{graph_name}/f1_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/f1_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             # Write results for neighborhood
             for threshold, values in neighborhood_balanced_accuracies.items():
-                f = open(f'experiments/{graph_name}/n_balanced_accuracy_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/n_balanced_accuracy_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in neighborhood_accuracies.items():
-                f = open(f'experiments/{graph_name}/n_accuracy_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/n_accuracy_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in neighborhood_recalls.items():
-                f = open(f'experiments/{graph_name}/n_recall_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/n_recall_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in neighborhood_precisions.items():
-                f = open(f'experiments/{graph_name}/n_precision_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/n_precision_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in neighborhood_f1s.items():
-                f = open(f'experiments/{graph_name}/n_f1_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/n_f1_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             # Write for original results
 
-            f = open(f'experiments/{graph_name}/og_balanced_accuracy.txt', 'w+')
+            f = open(f'{abs_file_path}/og_balanced_accuracy.txt', 'w+')
             f.write(str(og_balanced_accuracies))
 
-            f = open(f'experiments/{graph_name}/og_accuracy.txt', 'w+')
+            f = open(f'{abs_file_path}/og_accuracy.txt', 'w+')
             f.write(str(og_accuracies))
 
-            f = open(f'experiments/{graph_name}/og_recall.txt', 'w+')
+            f = open(f'{abs_file_path}/og_recall.txt', 'w+')
             f.write(str(og_recalls))
 
-            f = open(f'experiments/{graph_name}/og_precision.txt', 'w+')
+            f = open(f'{abs_file_path}/og_precision.txt', 'w+')
             f.write(str(og_precisions))
 
-            f = open(f'experiments/{graph_name}/og_f1.txt', 'w+')
+            f = open(f'{abs_file_path}/og_f1.txt', 'w+')
             f.write(str(og_f1s))
 
             data_file = open(f'{graph_name}.txt', 'w')

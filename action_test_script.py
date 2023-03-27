@@ -1,8 +1,14 @@
 #should create a string file and be able to push it
+from pathlib import Path
+import os
 def main():
     print("hell")
     #create a string file
-    string_file = open("string_file.txt", "w")
+    Path(f'experiments/graph_name').mkdir(parents=True, exist_ok=True)
+    script_dir = os.path.dirname(__file__)
+    rel_path = "experiments/graph_name/"
+    abs_file_path = os.path.join(script_dir, rel_path)
+    string_file = open(abs_file_path+"string_file.txt", "w")
     string_file.write("This is a string file")
     string_file.close()
     balanced_accuracies = []
