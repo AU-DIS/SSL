@@ -313,10 +313,10 @@ def find_best_mu(edgefile,part_nodes):
 if __name__ == '__main__':
     #graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
     dataset = sys.argv[0]
+    print("first arg is ",sys.argv[0])
     percentage_lower_bound = int(sys.argv[1])
     percentage_upper_bound = int(sys.argv[2])
     graph_names = [dataset]
-    print("first arg is ",sys.argv[0])
     print("second and third arg is ",sys.argv[1], sys.argv[2])
 
     standard_voting_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
