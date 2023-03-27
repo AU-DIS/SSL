@@ -438,44 +438,44 @@ if __name__ == '__main__':
             rel_path = f'experiments/{graph_name}/'
             abs_file_path = os.path.join(script_dir, rel_path)
             for threshold, values in standard_voting_balanced_accuracies.items():
-                f = open(f'{abs_file_path}/balanced_accuracy_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/balanced_accuracy_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_accuracies.items():
-                f = open(f'{abs_file_path}/accuracy_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/accuracy_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_recalls.items():
-                f = open(f'{abs_file_path}/recall_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/recall_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_precisions.items():
-                f = open(f'{abs_file_path}/precision_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/precision_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_f1s.items():
-                f = open(f'{abs_file_path}/f1_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/f1_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             # Write results for neighborhood
             for threshold, values in neighborhood_balanced_accuracies.items():
-                f = open(f'{abs_file_path}/n_balanced_accuracy_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/n_balanced_accuracy_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             for threshold, values in neighborhood_accuracies.items():
-                f = open(f'{abs_file_path}/n_accuracy_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/n_accuracy_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             for threshold, values in neighborhood_recalls.items():
-                f = open(f'{abs_file_path}/n_recall_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/n_recall_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             for threshold, values in neighborhood_precisions.items():
-                f = open(f'{abs_file_path}/n_precision_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/n_precision_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             for threshold, values in neighborhood_f1s.items():
-                f = open(f'{abs_file_path}/n_f1_{threshold}.txt', 'w+')
+                f = open(f'{abs_file_path}/n_f1_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             # Write for original results
