@@ -14,6 +14,7 @@ from problem.spectral_subgraph_localization import SubgraphIsomorphismSolver, Vo
 import pickle
 import sys
 from copy import deepcopy
+from pathlib import Path
 
 from sklearn.metrics import balanced_accuracy_score, recall_score, precision_score, f1_score, precision_recall_fscore_support
 
@@ -311,7 +312,7 @@ def find_best_mu(edgefile,part_nodes):
     return best_mu
 
 if __name__ == '__main__':
-    
+
     #graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
     dataset = sys.argv[1]
     percentage_lower_bound = int(sys.argv[2])
@@ -432,6 +433,7 @@ if __name__ == '__main__':
             f.write(str(conductances))
 
             # Write results for standard voting 
+            Path(f'experiments/{graph_name}').mkdir(parents=True, exist_ok=True)
             for threshold, values in standard_voting_balanced_accuracies.items():
                 f = open(f'experiments/{graph_name}/balanced_accuracy_{threshold}.txt', 'w+')
                 f.write(str(values))
@@ -474,6 +476,7 @@ if __name__ == '__main__':
                 f.write(str(values))
 
             # Write for original results
+
             f = open(f'experiments/{graph_name}/og_balanced_accuracy.txt', 'w+')
             f.write(str(og_balanced_accuracies))
 
