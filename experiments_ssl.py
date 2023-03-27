@@ -312,11 +312,16 @@ def find_best_mu(edgefile,part_nodes):
 
 if __name__ == '__main__':
     #graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
-    graph_names = ['football']
+    dataset = sys.argv[0]
+    percentage_lower_bound = sys.argv[1]
+    percentage_upper_bound = sys.argv[2]
+    graph_names = [dataset]
+    print("first arg is ",sys.argv[0])
+    print("second and third arg is ",sys.argv[1], sys.argv[2])
+
     standard_voting_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     neighborhood_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     conductances = []
-
     initial_dict = {threshold: [] for threshold in standard_voting_thresholds}
 
     # Create dictionaries for standard voting
@@ -352,7 +357,7 @@ if __name__ == '__main__':
         for folder_no in range(0,folder_amount):
             if use_global_mu and folder_no==0: continue
             perc = [0.1, 0.2, 0.3]
-            clcr = [i/10.0 for i in range(1, 4)]
+            clcr = [i/10.0 for i in range(percentage_lower_bound, percentage_upper_bound)]
             for per in perc:
                 if folder_no == 0: 
                     best_mu[per] = {}
@@ -423,65 +428,65 @@ if __name__ == '__main__':
                             og_recalls.append(og_results["recall"])
                             og_f1s.append(og_results["f1"])
 
-            f = open('condutance.txt', 'a+')
+            f = open(f'experiments/{graph_name}/condutance.txt', 'a+')
             f.write(str(conductances))
 
             # Write results for standard voting 
             for threshold, values in standard_voting_balanced_accuracies.items():
-                f = open(f'balanced_accuracy_{threshold}.txt', 'w+')
+                f = open(f'experiments/{graph_name}/balanced_accuracy_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_accuracies.items():
-                f = open(f'accuracy_{threshold}.txt', 'w+')
+                f = open(f'experiments/{graph_name}/accuracy_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_recalls.items():
-                f = open(f'recall_{threshold}.txt', 'w+')
+                f = open(f'experiments/{graph_name}/recall_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_precisions.items():
-                f = open(f'precision_{threshold}.txt', 'w+')
+                f = open(f'experiments/{graph_name}/precision_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_f1s.items():
-                f = open(f'f1_{threshold}.txt', 'w+')
+                f = open(f'experiments/{graph_name}/f1_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             # Write results for neighborhood
             for threshold, values in neighborhood_balanced_accuracies.items():
-                f = open(f'n_balanced_accuracy_{threshold}.txt', 'w+')
+                f = open(f'experiments/{graph_name}/n_balanced_accuracy_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in neighborhood_accuracies.items():
-                f = open(f'n_accuracy_{threshold}.txt', 'w+')
+                f = open(f'experiments/{graph_name}/n_accuracy_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in neighborhood_recalls.items():
-                f = open(f'n_recall_{threshold}.txt', 'w+')
+                f = open(f'experiments/{graph_name}/n_recall_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in neighborhood_precisions.items():
-                f = open(f'n_precision_{threshold}.txt', 'w+')
+                f = open(f'experiments/{graph_name}/n_precision_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             for threshold, values in neighborhood_f1s.items():
-                f = open(f'n_f1_{threshold}.txt', 'w+')
+                f = open(f'experiments/{graph_name}/n_f1_{threshold}.txt', 'w+')
                 f.write(str(values))
 
             # Write for original results
-            f = open(f'og_balanced_accuracy.txt', 'w+')
+            f = open(f'experiments/{graph_name}/og_balanced_accuracy.txt', 'w+')
             f.write(str(og_balanced_accuracies))
 
-            f = open(f'og_accuracy.txt', 'w+')
+            f = open(f'experiments/{graph_name}/og_accuracy.txt', 'w+')
             f.write(str(og_accuracies))
 
-            f = open(f'og_recall.txt', 'w+')
+            f = open(f'experiments/{graph_name}/og_recall.txt', 'w+')
             f.write(str(og_recalls))
 
-            f = open(f'og_precision.txt', 'w+')
+            f = open(f'experiments/{graph_name}/og_precision.txt', 'w+')
             f.write(str(og_precisions))
 
-            f = open(f'og_f1.txt', 'w+')
+            f = open(f'experiments/{graph_name}/og_f1.txt', 'w+')
             f.write(str(og_f1s))
 
             data_file = open(f'{graph_name}.txt', 'w')
