@@ -152,7 +152,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     original_balanced = balanced_acc(v_gt, v_binary.clone().detach().numpy())
     og_precision, og_recall, og_fscore = prec_recall_fscore(v_gt, v_binary.clone().detach().numpy())
 
-    experiments_to_make = 30
+    experiments_to_make = 1
     random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make=experiments_to_make) # Faked original balanced accuracy, can probably delete anyway
     # v_randomized, _ = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
     votes = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
@@ -433,7 +433,7 @@ if __name__ == '__main__':
             Path(f'experiments/{graph_name}').mkdir(parents=True, exist_ok=True)
             script_dir = os.path.dirname(__file__)
             rel_path = f'experiments/{graph_name}/'
-            abs_file_path = os.path.join(script_dir, rel_path) 
+            abs_file_path = os.path.join(script_dir, rel_path)
             f = open(f'{abs_file_path}/conductance.txt', 'a+')
             f.write(str(conductances))
 
