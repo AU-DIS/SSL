@@ -24,7 +24,7 @@ jobs:
           pip install -r requirements.txt
       
       - name: execute experiments 10 to 30 # run experiments with percentage 1 and 4 
-        run: python experiments_ssl.py ant 1 4
+        run: python experiments_ssl.py highschool 1 4
 
       - name: commit files
         run: |
@@ -62,7 +62,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py ant 4 8
+        run: python experiments_ssl.py highschool 4 8
 
       - name: commit files
         run: |
@@ -99,7 +99,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py ant 8 11
+        run: python experiments_ssl.py highschool 8 11
 
       - name: commit files
         run: |
