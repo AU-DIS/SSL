@@ -358,7 +358,7 @@ if __name__ == '__main__':
         folder_amount = 2
         for folder_no in range(0,folder_amount):
             if use_global_mu and folder_no==0: continue
-            perc = [0.1, 0.2, 0.3]
+            # perc = [0.1, 0.2, 0.3]
             clcr = [i/10.0 for i in range(percentage_lower_bound, percentage_upper_bound)]
             if folder_no == 0: 
                 best_mu[per] = {}
@@ -430,7 +430,7 @@ if __name__ == '__main__':
                         og_f1s.append(og_results["f1"])
 
                        # Write results for standard voting 
-            Path(f'experiments/{graph_name}').mkdir(parents=True, exist_ok=True)
+            Path(f'experiments/{graph_name}/{per}').mkdir(parents=True, exist_ok=True)
             script_dir = os.path.dirname(__file__)
             rel_path = f'experiments/{graph_name}/{per}'
             abs_file_path = os.path.join(script_dir, rel_path)
