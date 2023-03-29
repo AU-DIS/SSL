@@ -317,6 +317,7 @@ if __name__ == '__main__':
     dataset = sys.argv[1]
     percentage_lower_bound = int(sys.argv[2])
     percentage_upper_bound = int(sys.argv[3])
+    per = float(sys.argv[4])
     graph_names = [dataset]
 
 
@@ -359,80 +360,79 @@ if __name__ == '__main__':
             if use_global_mu and folder_no==0: continue
             perc = [0.1, 0.2, 0.3]
             clcr = [i/10.0 for i in range(percentage_lower_bound, percentage_upper_bound)]
-            for per in perc:
+            if folder_no == 0: 
+                best_mu[per] = {}
+            res_dict[graph_name][int(per*100)] = {}
+            for lr in clcr:   
                 if folder_no == 0: 
-                    best_mu[per] = {}
-                res_dict[graph_name][int(per*100)] = {}
-                for lr in clcr:   
-                    if folder_no == 0: 
-                        best_mu[per][lr] = 0
-                    ext = str(int(per*100))
-                    part_file = './data/'+graph_name+'/'+str(int(per*100))+'/'+str(folder_no)+'/'+graph_name+'_'+ext+'_nodes.txt'
-                    print(f'Reading subgraph from {part_file}')
-                    query_nodes=np.loadtxt(part_file)
-                    print(query_nodes)
-                    #print(part_nodes)
-                    ext = str(int(per*100))+"_"+str(int(lr*100))
-                    edgefile = './data/'+graph_name+'/'+str(int(per*100))+'/'+str(folder_no)+'/'+graph_name+'_'+ext+'.txt'
-                    if folder_no == 0:
-                        print('**** Looking for the best m ****')
-                        best_mu[per][lr] = find_best_mu(edgefile, query_nodes)
-                        best_m_par += best_mu[per][lr]
-                        counter_m_par += 1
-                    else:
-                        if use_global_mu:
-                            # acc, bal_acc, condac, recall_s, precision_s, f1_s =run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
-                            standard_voting_results, neighborhood_results, condac, og_results = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
-                            conductances.append(condac)
-                            # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
-                            for result in standard_voting_results:
-                                threshold = result["threshold"]
-                                standard_voting_balanced_accuracies[threshold].append(result["balanced_acc"])   
-                                standard_voting_accuracies[threshold].append(result["acc"])
-                                standard_voting_recalls[threshold].append(result["recall"])
-                                standard_voting_precisions[threshold].append(result["precision"])
-                                standard_voting_f1s[threshold].append(result["f1"])
-                            for result in neighborhood_results:
-                                threshold = result["threshold"]
-                                neighborhood_balanced_accuracies[threshold].append(result["balanced_acc"])   
-                                neighborhood_accuracies[threshold].append(result["acc"])
-                                neighborhood_recalls[threshold].append(result["recall"])
-                                neighborhood_precisions[threshold].append(result["precision"])
-                                neighborhood_f1s[threshold].append(result["f1"])
-                            og_balanced_accuracies.append(og_results["balanced_acc"])
-                            og_accuracies.append(og_results["acc"])
-                            og_precisions.append(og_results["precision"])
-                            og_recalls.append(og_results["recall"])
-                            og_f1s.append(og_results["f1"])
+                    best_mu[per][lr] = 0
+                ext = str(int(per*100))
+                part_file = './data/'+graph_name+'/'+str(int(per*100))+'/'+str(folder_no)+'/'+graph_name+'_'+ext+'_nodes.txt'
+                print(f'Reading subgraph from {part_file}')
+                query_nodes=np.loadtxt(part_file)
+                print(query_nodes)
+                #print(part_nodes)
+                ext = str(int(per*100))+"_"+str(int(lr*100))
+                edgefile = './data/'+graph_name+'/'+str(int(per*100))+'/'+str(folder_no)+'/'+graph_name+'_'+ext+'.txt'
+                if folder_no == 0:
+                    print('**** Looking for the best m ****')
+                    best_mu[per][lr] = find_best_mu(edgefile, query_nodes)
+                    best_m_par += best_mu[per][lr]
+                    counter_m_par += 1
+                else:
+                    if use_global_mu:
+                        # acc, bal_acc, condac, recall_s, precision_s, f1_s =run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
+                        standard_voting_results, neighborhood_results, condac, og_results = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
+                        conductances.append(condac)
+                        # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
+                        for result in standard_voting_results:
+                            threshold = result["threshold"]
+                            standard_voting_balanced_accuracies[threshold].append(result["balanced_acc"])   
+                            standard_voting_accuracies[threshold].append(result["acc"])
+                            standard_voting_recalls[threshold].append(result["recall"])
+                            standard_voting_precisions[threshold].append(result["precision"])
+                            standard_voting_f1s[threshold].append(result["f1"])
+                        for result in neighborhood_results:
+                            threshold = result["threshold"]
+                            neighborhood_balanced_accuracies[threshold].append(result["balanced_acc"])   
+                            neighborhood_accuracies[threshold].append(result["acc"])
+                            neighborhood_recalls[threshold].append(result["recall"])
+                            neighborhood_precisions[threshold].append(result["precision"])
+                            neighborhood_f1s[threshold].append(result["f1"])
+                        og_balanced_accuracies.append(og_results["balanced_acc"])
+                        og_accuracies.append(og_results["acc"])
+                        og_precisions.append(og_results["precision"])
+                        og_recalls.append(og_results["recall"])
+                        og_f1s.append(og_results["f1"])
 
-                        else:
-                            standard_voting_results, neighborhood_results, condac, og_results =run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds)
-                            conductances.append(condac)
-                            # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
-                            for result in standard_voting_results:
-                                threshold = result["threshold"]
-                                standard_voting_balanced_accuracies[threshold].append(result["balanced_acc"])   
-                                standard_voting_accuracies[threshold].append(result["acc"])
-                                standard_voting_recalls[threshold].append(result["recall"])
-                                standard_voting_precisions[threshold].append(result["precision"])
-                                standard_voting_f1s[threshold].append(result["f1"])
-                            for result in neighborhood_results:
-                                threshold = result["threshold"]
-                                neighborhood_balanced_accuracies[threshold].append(result["balanced_acc"])   
-                                neighborhood_accuracies[threshold].append(result["acc"])
-                                neighborhood_recalls[threshold].append(result["recall"])
-                                neighborhood_precisions[threshold].append(result["precision"])
-                                neighborhood_f1s[threshold].append(result["f1"])
-                            og_balanced_accuracies.append(og_results["balanced_acc"])
-                            og_accuracies.append(og_results["acc"])
-                            og_precisions.append(og_results["precision"])
-                            og_recalls.append(og_results["recall"])
-                            og_f1s.append(og_results["f1"])
+                    else:
+                        standard_voting_results, neighborhood_results, condac, og_results =run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds)
+                        conductances.append(condac)
+                        # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
+                        for result in standard_voting_results:
+                            threshold = result["threshold"]
+                            standard_voting_balanced_accuracies[threshold].append(result["balanced_acc"])   
+                            standard_voting_accuracies[threshold].append(result["acc"])
+                            standard_voting_recalls[threshold].append(result["recall"])
+                            standard_voting_precisions[threshold].append(result["precision"])
+                            standard_voting_f1s[threshold].append(result["f1"])
+                        for result in neighborhood_results:
+                            threshold = result["threshold"]
+                            neighborhood_balanced_accuracies[threshold].append(result["balanced_acc"])   
+                            neighborhood_accuracies[threshold].append(result["acc"])
+                            neighborhood_recalls[threshold].append(result["recall"])
+                            neighborhood_precisions[threshold].append(result["precision"])
+                            neighborhood_f1s[threshold].append(result["f1"])
+                        og_balanced_accuracies.append(og_results["balanced_acc"])
+                        og_accuracies.append(og_results["acc"])
+                        og_precisions.append(og_results["precision"])
+                        og_recalls.append(og_results["recall"])
+                        og_f1s.append(og_results["f1"])
 
                        # Write results for standard voting 
             Path(f'experiments/{graph_name}').mkdir(parents=True, exist_ok=True)
             script_dir = os.path.dirname(__file__)
-            rel_path = f'experiments/{graph_name}/'
+            rel_path = f'experiments/{graph_name}/{per}'
             abs_file_path = os.path.join(script_dir, rel_path)
             f = open(f'{abs_file_path}/conductance.txt', 'a+')
             f.write(str(conductances))
