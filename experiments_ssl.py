@@ -197,9 +197,9 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     og_results = {
                 "acc": original_accuracy,
                 "balanced_acc": original_balanced,
-                "precision": og_precision,
-                "recall": og_recall,
-                "f1": og_fscore,
+                "precision": og_precision[0],
+                "recall": og_recall[0],
+                "f1": og_fscore[0],
             }
 
     # Returning original accuracy
