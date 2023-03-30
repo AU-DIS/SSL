@@ -2,8 +2,14 @@ import sys
 import matplotlib.pyplot as plt
 
 graph = sys.argv[1]
-per = sys.argv[2]
-voting_threshold = sys.argv[3]
+per = '0.1'
+voting_threshold = None
+
+if len(sys.argv) >= 3:
+    per = sys.argv[2]
+    
+if len(sys.argv) >= 4:
+    voting_threshold = sys.argv[3]
 
 def plot_balanced_acc(graph, per, voting_threshold, axs):
     with open(f'experiments/{graph}/{per}/conductance.txt') as f1, \
@@ -35,33 +41,22 @@ def plot_balanced_acc(graph, per, voting_threshold, axs):
     n_balanced_accuracy = n_balanced_accuracy.split(", ")
     n_balanced_accuracy = [float(i) for i in n_balanced_accuracy]
 
-    # Define two arrays of data to plot
-    # TODO Conductance kommer ikke i stigende rækkefølge pga. den måde vi kører eksperimenterne på. Derfor fake dataset...
     x_values = conductance
     y1_values = og_balanced_accuracy
     y2_values = balanced_accuracy
     y3_values = n_balanced_accuracy
 
-    # Create a new figure and axis object
+    axs.plot(x_values, y1_values, color='blue', marker='o')
 
-    # Plot the first set of data as a blue line
-    axs[0].plot(x_values, y1_values, color='blue')
+    axs.plot(x_values, y2_values, color='red', marker='o')
 
-    # Plot the second set of data as a red line
-    axs[0].plot(x_values, y2_values, color='red')
+    axs.plot(x_values, y3_values, color='green', marker='o')
 
-    axs[0].plot(x_values, y3_values, color='green')
+    axs.legend(['Standard', 'Voting', 'Neighborhood'])
 
-    # Add a legend to the plot
-    axs[0].legend(['Standard', 'Voting', 'Neighborhood'])
+    axs.set_xlabel('Conductance')
+    axs.set_ylabel('Balanced Accuracy')
 
-    # Set the x and y axis labels
-    axs[0].set_xlabel('Conductance')
-    axs[0].set_ylabel('Balanced Accuracy')
-
-    # Set the title of the plot 
-
-    # Display the plot
     return axs
 
 def plot_f1(graph, per, voting_threshold, axs):
@@ -94,38 +89,68 @@ def plot_f1(graph, per, voting_threshold, axs):
     n_f1 = n_f1.split(", ")
     n_f1 = [float(i) for i in n_f1]
 
-    # Define two arrays of data to plot
-    # TODO Conductance kommer ikke i stigende rækkefølge pga. den måde vi kører eksperimenterne på. Derfor fake dataset...
     x_values = conductance
     y1_values = og_f1
     y2_values = _f1
     y3_values = n_f1
 
-    # Plot the first set of data as a blue line
-    axs[1].plot(x_values, y1_values, color='blue')
+    axs.plot(x_values, y1_values, color='blue', marker='o')
 
-    # Plot the second set of data as a red line
-    axs[1].plot(x_values, y2_values, color='red')
+    axs.plot(x_values, y2_values, color='red', marker='o')
 
-    axs[1].plot(x_values, y3_values, color='green')
+    axs.plot(x_values, y3_values, color='green', marker='o')
 
-    # Add a legend to the plot
-    axs[1].legend(['Standard', 'Voting', 'Neighborhood'])
+    axs.legend(['Standard', 'Voting', 'Neighborhood'])
 
-    # Set the x and y axis labels
-    axs[1].set_xlabel('Conductance')
-    axs[1].set_ylabel('f1')
+    axs.set_xlabel('Conductance')
+    axs.set_ylabel('f1')
 
-    # Set the title of the plot
+def plot_all_thresholds(graph, per):
+    fig = plt.figure()
+    fig.suptitle('Graph: ' + graph + ', Percentage: ' + per + '\n Balanced Accuracy and f1 for different conductances over different voting thresholds')
+    gs = fig.add_gridspec(2, 6, hspace=0.3, wspace=0.3)
 
-    # Display the plot
+    (axs1, axs2, axs3, axs4, axs5, axs6), (axs7, axs8, axs9, axs10, axs11, axs12) = gs.subplots(sharey='row')
 
-if __name__ == '__main__':
+    axs1 = plot_balanced_acc(graph, per, 0.1, axs1)
+    axs2 = plot_balanced_acc(graph, per, 0.2, axs2)
+    axs3 = plot_balanced_acc(graph, per, 0.3, axs3)
+    axs4 = plot_balanced_acc(graph, per, 0.4, axs4)
+    axs5 = plot_balanced_acc(graph, per, 0.5, axs5)
+    axs6 = plot_balanced_acc(graph, per, 0.6, axs6)
+    axs7 = plot_f1(graph, per, 0.1, axs7)
+    axs8 = plot_f1(graph, per, 0.2, axs8)
+    axs9 = plot_f1(graph, per, 0.3, axs9)
+    axs10 = plot_f1(graph, per, 0.4, axs10)
+    axs11 = plot_f1(graph, per, 0.5, axs11)
+    axs12 = plot_f1(graph, per, 0.6, axs12)
+
+    axs1.set_title('Voting Threshold: 0.1')
+    axs2.set_title('Voting Threshold: 0.2')
+    axs3.set_title('Voting Threshold: 0.3')
+    axs4.set_title('Voting Threshold: 0.4')
+    axs5.set_title('Voting Threshold: 0.5')
+    axs6.set_title('Voting Threshold: 0.6')
+
+    plt.show()
+
+
+def plot_selected_thresholds(graph, per):
     fig = plt.figure()
     fig.suptitle('Graph: ' + graph + ', Percentage: ' + per + ', Voting Threshold: ' + voting_threshold)
     gs = fig.add_gridspec(2, hspace=0.5)
-    axs = gs.subplots()
-    axs = plot_balanced_acc(graph, per, voting_threshold, axs)
-    axs[0].set_title('Balanced Accuracy and f1 for different conductances')
-    axs = plot_f1(graph, per, voting_threshold, axs)
+
+    axs1, axs2 = gs.subplots()
+
+    axs1.set_title('Balanced Accuracy and f1 for different conductances')
+
+    axs1 = plot_balanced_acc(graph, per, voting_threshold, axs1)
+    axs2 = plot_f1(graph, per, voting_threshold, axs2)
+
     plt.show()
+
+if __name__ == '__main__':    
+    if voting_threshold == None:
+        plot_all_thresholds(graph, per)
+    else:
+        plot_selected_thresholds(graph, per)
