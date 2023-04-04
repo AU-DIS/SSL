@@ -30,7 +30,7 @@ jobs:
           pip install -r requirements.txt
       
       - name: execute experiments 10 to 20 with 10 percent # run experiments with percentage 1 and 4 
-        run: python experiments_ssl.py malaria 1 2 0.1
+        run: python experiments_ssl.py powerlaw 1 2 0.1
 
       - name: commit files
         run: |
@@ -74,7 +74,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py malaria 2 3 0.1
+        run: python experiments_ssl.py powerlaw 2 3 0.1
 
       - name: commit files
         run: |
@@ -118,7 +118,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70
-        run: python experiments_ssl.py malaria 3 4 0.1
+        run: python experiments_ssl.py powerlaw 3 4 0.1
 
       - name: commit files
         run: |
@@ -162,7 +162,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py malaria 3 4 0.1
+        run: python experiments_ssl.py powerlaw 3 4 0.1
 
       - name: commit files
         run: |
@@ -205,7 +205,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 4 5 0.1
+        run: python experiments_ssl.py powerlaw 4 5 0.1
 
       - name: commit files
         run: |
@@ -248,7 +248,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 5 6 0.1
+        run: python experiments_ssl.py powerlaw 5 6 0.1
 
       - name: commit files
         run: |
@@ -291,7 +291,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 7 8 0.1
+        run: python experiments_ssl.py powerlaw 7 8 0.1
 
       - name: commit files
         run: |
@@ -334,7 +334,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 8 9 0.1
+        run: python experiments_ssl.py powerlaw 8 9 0.1
 
       - name: commit files
         run: |
@@ -377,7 +377,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 9 10 0.1
+        run: python experiments_ssl.py powerlaw 9 10 0.1
 
       - name: commit files
         run: |
@@ -420,7 +420,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 10 11 0.1
+        run: python experiments_ssl.py powerlaw 10 11 0.1
 
       - name: commit files
         run: |
@@ -464,7 +464,7 @@ jobs:
           pip install -r requirements.txt
       
       - name: execute experiments 10 to 20 with 10 percent # run experiments with percentage 1 and 4 
-        run: python experiments_ssl.py malaria 1 2 0.2
+        run: python experiments_ssl.py powerlaw 1 2 0.2
 
       - name: commit files
         run: |
@@ -508,7 +508,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py malaria 2 3 0.2
+        run: python experiments_ssl.py powerlaw 2 3 0.2
 
       - name: commit files
         run: |
@@ -552,7 +552,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70
-        run: python experiments_ssl.py malaria 3 4 0.2
+        run: python experiments_ssl.py powerlaw 3 4 0.2
 
       - name: commit files
         run: |
@@ -596,7 +596,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py malaria 3 4 0.2
+        run: python experiments_ssl.py powerlaw 3 4 0.2
 
       - name: commit files
         run: |
@@ -639,7 +639,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 4 5 0.2
+        run: python experiments_ssl.py powerlaw 4 5 0.2
 
       - name: commit files
         run: |
@@ -682,7 +682,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 5 6 0.2
+        run: python experiments_ssl.py powerlaw 5 6 0.2
 
       - name: commit files
         run: |
@@ -725,7 +725,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 7 8 0.2
+        run: python experiments_ssl.py powerlaw 7 8 0.2
 
       - name: commit files
         run: |
@@ -768,7 +768,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 8 9 0.2
+        run: python experiments_ssl.py powerlaw 8 9 0.2
 
       - name: commit files
         run: |
@@ -811,7 +811,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 9 10 0.2
+        run: python experiments_ssl.py powerlaw 9 10 0.2
 
       - name: commit files
         run: |
@@ -854,7 +854,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 10 11 0.2
+        run: python experiments_ssl.py powerlaw 10 11 0.2
 
       - name: commit files
         run: |
@@ -898,7 +898,7 @@ jobs:
           pip install -r requirements.txt
       
       - name: execute experiments 10 to 20 with 10 percent # run experiments with percentage 1 and 4 
-        run: python experiments_ssl.py malaria 1 2 0.3
+        run: python experiments_ssl.py powerlaw 1 2 0.3
 
       - name: commit files
         run: |
@@ -942,7 +942,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py malaria 2 3 0.3
+        run: python experiments_ssl.py powerlaw 2 3 0.3
 
       - name: commit files
         run: |
@@ -986,7 +986,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70
-        run: python experiments_ssl.py malaria 3 4 0.3
+        run: python experiments_ssl.py powerlaw 3 4 0.3
 
       - name: commit files
         run: |
@@ -1030,7 +1030,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py malaria 3 4 0.3
+        run: python experiments_ssl.py powerlaw 3 4 0.3
 
       - name: commit files
         run: |
@@ -1073,7 +1073,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 4 5 0.3
+        run: python experiments_ssl.py powerlaw 4 5 0.3
 
       - name: commit files
         run: |
@@ -1116,7 +1116,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 5 6 0.3
+        run: python experiments_ssl.py powerlaw 5 6 0.3
 
       - name: commit files
         run: |
@@ -1159,7 +1159,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 7 8 0.3
+        run: python experiments_ssl.py powerlaw 7 8 0.3
 
       - name: commit files
         run: |
@@ -1202,7 +1202,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 8 9 0.3
+        run: python experiments_ssl.py powerlaw 8 9 0.3
 
       - name: commit files
         run: |
@@ -1245,7 +1245,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 9 10 0.3
+        run: python experiments_ssl.py powerlaw 9 10 0.3
 
       - name: commit files
         run: |
@@ -1288,7 +1288,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py malaria 10 11 0.3
+        run: python experiments_ssl.py powerlaw 10 11 0.3
 
       - name: commit files
         run: |
