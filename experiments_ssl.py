@@ -153,7 +153,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     og_precision, og_recall, og_fscore = prec_recall_fscore(v_gt, v_binary.clone().detach().numpy())
 
     experiments_to_make = 30
-    
+
     random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make=experiments_to_make) # Faked original balanced accuracy, can probably delete anyway
     # v_randomized, _ = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
     votes = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
@@ -315,6 +315,7 @@ def find_best_mu(edgefile,part_nodes):
 if __name__ == '__main__':
 
     #graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
+    
     dataset = sys.argv[1]
     percentage_lower_bound = int(sys.argv[2])
     percentage_upper_bound = int(sys.argv[3])
