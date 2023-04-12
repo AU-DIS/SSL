@@ -43,15 +43,15 @@ def plot_balanced_acc(graph, per, voting_threshold, axs):
     n_balanced_accuracy = n_balanced_accuracy.split(", ")
     n_balanced_accuracy = [float(i) for i in n_balanced_accuracy]
 
-    x_values = conductance
-    y1_values = og_balanced_accuracy
-    y2_values = balanced_accuracy
-    y3_values = n_balanced_accuracy
+    shortest_length = min(len(conductance), len(og_balanced_accuracy), len(balanced_accuracy), len(n_balanced_accuracy))
+
+    x_values = conductance[0:shortest_length]
+    y1_values = og_balanced_accuracy[0:shortest_length]
+    y2_values = balanced_accuracy[0:shortest_length]
+    y3_values = n_balanced_accuracy[0:shortest_length]
 
     axs.plot(x_values, y1_values, color='blue', marker='o')
-
     axs.plot(x_values, y2_values, color='red', marker='o')
-
     axs.plot(x_values, y3_values, color='green', marker='o')
 
     axs.legend(['Standard', 'Voting', 'Neighborhood'])
@@ -93,15 +93,15 @@ def plot_f1(graph, per, voting_threshold, axs):
     n_f1 = n_f1.split(", ")
     n_f1 = [float(i) for i in n_f1]
 
-    x_values = conductance
-    y1_values = og_f1
-    y2_values = _f1
-    y3_values = n_f1
+    shortest_length = min(len(conductance), len(og_f1), len(_f1), len(n_f1))
+
+    x_values = conductance[0:shortest_length]
+    y1_values = og_f1[0:shortest_length]
+    y2_values = _f1[0:shortest_length]
+    y3_values = n_f1[0:shortest_length]
 
     axs.plot(x_values, y1_values, color='blue', marker='o')
-
     axs.plot(x_values, y2_values, color='red', marker='o')
-
     axs.plot(x_values, y3_values, color='green', marker='o')
 
     axs.legend(['Standard', 'Voting', 'Neighborhood'])
