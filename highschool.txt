@@ -1,1 +1,1 @@
-{'highschool': {30: {}}}
+{'highschool': {20: {}}}
