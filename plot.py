@@ -12,8 +12,8 @@ if len(sys.argv) >= 4:
     voting_threshold = sys.argv[3]
 
 def plot_balanced_acc(graph, per, voting_threshold, axs):
-    with open(f'experiments/{graph}/{per}/conductance.txt') as f1, \
-         open(f'experiments/{graph}/{per}/og_balanced_accuracy.txt') as f2, \
+    with open(f'experiments/{graph}/{per}/OG/conductance.txt') as f1, \
+         open(f'experiments/{graph}/{per}/OG/og_balanced_accuracy.txt') as f2, \
          open(f'experiments/{graph}/{per}/balanced_accuracy_{voting_threshold}.txt') as f3, \
          open(f'experiments/{graph}/{per}/n_balanced_accuracy_{voting_threshold}.txt') as f4:
         conductance = f1.read()
@@ -23,9 +23,11 @@ def plot_balanced_acc(graph, per, voting_threshold, axs):
         og_balanced_accuracy = og_balanced_accuracy.replace('[', '')
         og_balanced_accuracy = og_balanced_accuracy.replace(']', '')
         balanced_accuracy = f3.read()
+        balanced_accuracy = balanced_accuracy.replace('][', ', ')
         balanced_accuracy = balanced_accuracy.replace('[', '')
         balanced_accuracy = balanced_accuracy.replace(']', '')
         n_balanced_accuracy = f4.read()
+        n_balanced_accuracy = n_balanced_accuracy.replace('][', ', ')
         n_balanced_accuracy = n_balanced_accuracy.replace('[', '')
         n_balanced_accuracy = n_balanced_accuracy.replace(']', '')
 
@@ -41,15 +43,15 @@ def plot_balanced_acc(graph, per, voting_threshold, axs):
     n_balanced_accuracy = n_balanced_accuracy.split(", ")
     n_balanced_accuracy = [float(i) for i in n_balanced_accuracy]
 
-    x_values = conductance
-    y1_values = og_balanced_accuracy
-    y2_values = balanced_accuracy
-    y3_values = n_balanced_accuracy
+    shortest_length = min(len(conductance), len(og_balanced_accuracy), len(balanced_accuracy), len(n_balanced_accuracy))
+
+    x_values = conductance[0:shortest_length]
+    y1_values = og_balanced_accuracy[0:shortest_length]
+    y2_values = balanced_accuracy[0:shortest_length]
+    y3_values = n_balanced_accuracy[0:shortest_length]
 
     axs.plot(x_values, y1_values, color='blue', marker='o')
-
     axs.plot(x_values, y2_values, color='red', marker='o')
-
     axs.plot(x_values, y3_values, color='green', marker='o')
 
     axs.legend(['Standard', 'Voting', 'Neighborhood'])
@@ -60,8 +62,8 @@ def plot_balanced_acc(graph, per, voting_threshold, axs):
     return axs
 
 def plot_f1(graph, per, voting_threshold, axs):
-    with open(f'experiments/{graph}/{per}/conductance.txt') as f1, \
-         open(f'experiments/{graph}/{per}/og_f1.txt') as f2, \
+    with open(f'experiments/{graph}/{per}/OG/conductance.txt') as f1, \
+         open(f'experiments/{graph}/{per}/OG/og_f1.txt') as f2, \
          open(f'experiments/{graph}/{per}/f1_{voting_threshold}.txt') as f3, \
          open(f'experiments/{graph}/{per}/n_f1_{voting_threshold}.txt') as f4:
         conductance = f1.read()
@@ -71,9 +73,11 @@ def plot_f1(graph, per, voting_threshold, axs):
         og_f1 = og_f1.replace('[', '')
         og_f1 = og_f1.replace(']', '')
         _f1 = f3.read()
+        _f1 = _f1.replace('][', ', ')
         _f1 = _f1.replace('[', '')
         _f1 = _f1.replace(']', '')
         n_f1 = f4.read()
+        n_f1 = n_f1.replace('][', ', ')
         n_f1 = n_f1.replace('[', '')
         n_f1 = n_f1.replace(']', '')
 
@@ -89,15 +93,15 @@ def plot_f1(graph, per, voting_threshold, axs):
     n_f1 = n_f1.split(", ")
     n_f1 = [float(i) for i in n_f1]
 
-    x_values = conductance
-    y1_values = og_f1
-    y2_values = _f1
-    y3_values = n_f1
+    shortest_length = min(len(conductance), len(og_f1), len(_f1), len(n_f1))
+
+    x_values = conductance[0:shortest_length]
+    y1_values = og_f1[0:shortest_length]
+    y2_values = _f1[0:shortest_length]
+    y3_values = n_f1[0:shortest_length]
 
     axs.plot(x_values, y1_values, color='blue', marker='o')
-
     axs.plot(x_values, y2_values, color='red', marker='o')
-
     axs.plot(x_values, y3_values, color='green', marker='o')
 
     axs.legend(['Standard', 'Voting', 'Neighborhood'])
