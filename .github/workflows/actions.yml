@@ -1,11 +1,4 @@
 name: run experiments_ssl.py
-
-on:
-  push: 
-    branches:
-      - master
-      
-
 jobs:
   exp1:
     runs-on: ubuntu-latest
