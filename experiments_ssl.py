@@ -435,7 +435,7 @@ if __name__ == '__main__':
                         og_f1s.append(og_results["f1"])
 
                        # Write results for standard voting 
-            Path(f'experiments/{graph_name}/{per}').mkdir(parents=True, exist_ok=True)
+            Path(f'experiments/{graph_name}/{per}/OG').mkdir(parents=True, exist_ok=True)
             script_dir = os.path.dirname(__file__)
             rel_path = f'experiments/{graph_name}/{per}/OG'
             abs_file_path = os.path.join(script_dir, rel_path)
