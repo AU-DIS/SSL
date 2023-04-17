@@ -12,6 +12,9 @@ from scipy.sparse import csr_matrix, coo_matrix
 from sklearn.neighbors import KDTree
 import unsup_align
 import embedding
+from pathlib import Path
+import os
+
 #from functionalMaps_nn import *
 
 
@@ -125,6 +128,8 @@ def get_counterpart(alignment_matrix, true_alignments, part_nodes):
     
     correct_0_nodes = []
     correct_1_nodes = []
+    incorrect_0_nodes = []
+    incorrect_1_nodes = []
     counterpart_dict = {}
 
     if not sps.issparse(alignment_matrix):
@@ -141,13 +146,42 @@ def get_counterpart(alignment_matrix, true_alignments, part_nodes):
             node_sorted_indices = sorted_indices[node_index]
         if (target_alignment in part_nodes) and (node_sorted_indices[-1:][0] in part_nodes):
             correct_0_nodes.append(node_index)
+        elif (target_alignment in part_nodes) and (node_sorted_indices[-1:][0] not in part_nodes):
+            incorrect_0_nodes.append(node_index)
+        elif (target_alignment not in part_nodes) and (node_sorted_indices[-1:][0] in part_nodes):
+            incorrect_1_nodes.append(node_index)
         elif (target_alignment not in part_nodes) and (node_sorted_indices[-1:][0] not in part_nodes):
             correct_1_nodes.append(node_index)
         counterpart = node_sorted_indices[-1]
         counterpart_dict[node_index] = counterpart
+
+    #part_nodes er de rigtige nodes i queryen - y_true
+    #correct 0 er dem som vi har gættet korrekt er inde i query - TP
+    #correct 1 er dem som vi har gættet korrekt er udenfor query - TN
+    # incorrect 0 er dem som vi har gættet forkert er inde i query - FN
+    # incorrect 1 er dem som vi har gættet forkert er udenfor query - FP
+
+    print(correct_0_nodes, correct_1_nodes)
+    print("")
+    print(incorrect_0_nodes, incorrect_1_nodes)
+    print(len(correct_0_nodes)+len(incorrect_0_nodes))
     balanced_accuracy = (len(correct_0_nodes)/len(part_nodes) + len(correct_1_nodes)/(n_nodes-len(part_nodes)))/2.0
     accuracy = len(correct_0_nodes)/len(part_nodes)
-    return balanced_accuracy, accuracy
+    if (len(correct_0_nodes)+len(incorrect_0_nodes) == 0):
+        precision = 0
+    else:
+        precision = len(correct_0_nodes) / (len(correct_0_nodes)+len(incorrect_1_nodes))
+    if (len(correct_0_nodes)+len(incorrect_0_nodes)==0):
+        recall = 0
+    else:
+        recall = len(correct_0_nodes) / (len(correct_0_nodes)+len(incorrect_0_nodes))
+
+    if (precision+recall == 0):
+        f1 = 0
+    else:
+        f1 = 2 * precision * recall / (precision + recall)
+    print(precision, recall, f1)
+    return balanced_accuracy, accuracy, f1
 
 
 def kd_align(emb1, emb2, normalize=False, distance_metric="euclidean", num_top=10):
@@ -169,13 +203,18 @@ def kd_align(emb1, emb2, normalize=False, distance_metric="euclidean", num_top=1
 
 
 def main(args):
+    import os
     graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
     for graphname in graph_names:
         res_dict={}
         res_dict[graphname] = {}
-        for nofolder in range(1, 11):
+        balanced_accuracies = []
+        conductances = []
+        accuracies = []
+        f1s = []
+        for nofolder in range(1, 2):
             subsizes = [0.1, 0.2, 0.3]
-            pers = [i/10.0 for i in range(11)]
+            pers = [i/10.0 for i in range(1,11)]
             for subsize in subsizes:
                 res_dict[graphname][int(subsize*100)] = {}
                 for per in pers: 
@@ -231,10 +270,18 @@ def main(args):
 
                         # evaluation
                         true_align = None
-                        balanced_accuracy, accuracy = get_counterpart(alignment_matrix, true_align, part_nodes)
+                        balanced_accuracy, accuracy, f1 = get_counterpart(alignment_matrix, true_align, part_nodes)
                         print("Accuracy of CONE-align: %f" % accuracy)
                         print("Balanced Accuracy of CONE-align: %f" % balanced_accuracy)
-                        res_dict[graphname][(int(subsize*100))][condac] = [accuracy, balanced_accuracy]
+                        print("f1 of CONE-align: %f" % f1)
+
+                        balanced_accuracies.append(balanced_accuracy)
+                        accuracies.append(accuracy)
+                        f1s.append(f1)
+                        conductances.append(condac)
+
+                        res_dict[graphname][(int(subsize*100))][condac] = [accuracy, balanced_accuracy, f1]
+            
             if True:
                 print(res_dict)
                 name_to_save = graphname+"_"+str(nofolder)
@@ -244,6 +291,21 @@ def main(args):
                         os.makedirs('./pkl_results_CONE/'+graphname)
                 with open(directo, 'wb') as f:
                     pickle.dump(res_dict, f)
+       
+       
+        rel_path = f'experiments/{graphname}'
+        Path(rel_path).mkdir(parents=True, exist_ok=True)
+        script_dir = os.path.dirname(__file__)
+        abs_file_path = os.path.join(script_dir, rel_path)
+        f = open(f'{abs_file_path}/balanced_accuracies.txt', 'w')
+        f.write(str(balanced_accuracies))
+        f = open(f'{abs_file_path}/accuracies.txt', 'w')
+        f.write(str(accuracies))
+        f = open(f'{abs_file_path}/f1s.txt', 'w')
+        f.write(str(f1s))
+        f = open(f'{abs_file_path}/conductances.txt', 'w')
+        f.write(str(conductances))
+
 
 
 
