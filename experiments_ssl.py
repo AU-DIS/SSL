@@ -55,7 +55,7 @@ def prune_graph(G, part_nodes):
     print("removing edges:", list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
     G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
 
-def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborhood_thresholds=[]):
+def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborhood_thresholds=[], edge_removal=0.3):
     print(f'Reading from {edgefile}')
     A1=edgelist_to_adjmatrix(edgefile)
     G=nx.from_numpy_matrix(A1)
@@ -155,9 +155,9 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     original_balanced = balanced_acc(v_gt, v_binary.clone().detach().numpy())
     og_precision, og_recall, og_fscore = prec_recall_fscore(v_gt, v_binary.clone().detach().numpy())
 
-    experiments_to_make = 2
+    experiments_to_make = 30
 
-    random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make=experiments_to_make) # Faked original balanced accuracy, can probably delete anyway
+    random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make=experiments_to_make, edge_removal=edge_removal) # Faked original balanced accuracy, can probably delete anyway
     # v_randomized, _ = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
     votes = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
 
@@ -323,6 +323,7 @@ if __name__ == '__main__':
     percentage_lower_bound = int(sys.argv[2])
     percentage_upper_bound = int(sys.argv[3])
     per = float(sys.argv[4])
+    edge_removal = float(sys.argv[5])
     graph_names = [dataset]
 
     # standard_voting_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
@@ -389,7 +390,7 @@ if __name__ == '__main__':
                 else:
                     if use_global_mu:
                         # acc, bal_acc, condac, recall_s, precision_s, f1_s =run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
-                        standard_voting_results, neighborhood_results, condac, og_results = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
+                        standard_voting_results, neighborhood_results, condac, og_results = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds, edge_removal=edge_removal)
                         conductances.append(condac)
                         # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
                         for result in standard_voting_results:
