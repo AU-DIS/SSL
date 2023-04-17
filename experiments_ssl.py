@@ -332,6 +332,7 @@ if __name__ == '__main__':
     neighborhood_thresholds = [0.3]
 
     conductances = []
+    edge_removals = []
     initial_dict = {threshold: [] for threshold in standard_voting_thresholds}
 
     # Create dictionaries for standard voting
@@ -392,6 +393,7 @@ if __name__ == '__main__':
                         # acc, bal_acc, condac, recall_s, precision_s, f1_s =run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
                         standard_voting_results, neighborhood_results, condac, og_results = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds, edge_removal=edge_removal)
                         conductances.append(condac)
+                        edge_removals.append(edge_removal)
                         # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
                         for result in standard_voting_results:
                             threshold = result["threshold"]
@@ -416,6 +418,7 @@ if __name__ == '__main__':
                     else:
                         standard_voting_results, neighborhood_results, condac, og_results =run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds)
                         conductances.append(condac)
+                        edge_removals.append(edge_removal)
                         # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
                         for result in standard_voting_results:
                             threshold = result["threshold"]
@@ -442,8 +445,12 @@ if __name__ == '__main__':
             Path(rel_path).mkdir(parents=True, exist_ok=True)
             script_dir = os.path.dirname(__file__)
             abs_file_path = os.path.join(script_dir, rel_path)
+            
             f = open(f'{abs_file_path}/conductance.txt', 'a+')
             f.write(str(conductances))
+
+            f = open(f'{abs_file_path}/edge_removal.txt', 'a+')
+            f.write(str(edge_removals))
 
             for threshold, values in standard_voting_balanced_accuracies.items():
                 f = open(f'{abs_file_path}/balanced_accuracy_{threshold}.txt', 'a+')
