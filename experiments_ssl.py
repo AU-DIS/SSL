@@ -510,8 +510,8 @@ if __name__ == '__main__':
             # f = open(f'{abs_file_path}/og_f1.txt', 'a+')
             # f.write(str(og_f1s))
 
-            data_file = open(f'{graph_name}.txt', 'w')
-            data_file.write(str(res_dict))
+            # data_file = open(f'{graph_name}.txt', 'w')
+            # data_file.write(str(res_dict))
 
             # if(True):
             #     name_to_save = graph_name+"_"+str(folder_no)
