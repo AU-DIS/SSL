@@ -281,6 +281,23 @@ def main(args):
                         conductances.append(condac)
 
                         res_dict[graphname][(int(subsize*100))][condac] = [accuracy, balanced_accuracy, f1]
+                
+                
+                rel_path = f'experiments/{graphname}/{subsize}'
+                Path(rel_path).mkdir(parents=True, exist_ok=True)
+                script_dir = os.path.dirname(__file__)
+                abs_file_path = os.path.join(script_dir, rel_path)
+                if not os.path.exists(abs_file_path):
+                    os.makedirs(abs_file_path)
+                f = open(f'{abs_file_path}/balanced_accuracies.txt', 'w')
+                f.write(str(balanced_accuracies))
+                f = open(f'{abs_file_path}/accuracies.txt', 'w')
+                f.write(str(accuracies))
+                f = open(f'{abs_file_path}/f1s.txt', 'w')
+                f.write(str(f1s))
+                f = open(f'{abs_file_path}/conductances.txt', 'w')
+                f.write(str(conductances))
+                    
             
             if True:
                 print(res_dict)
@@ -291,20 +308,10 @@ def main(args):
                         os.makedirs('./pkl_results_CONE/'+graphname)
                 with open(directo, 'wb') as f:
                     pickle.dump(res_dict, f)
+            
        
        
-        rel_path = f'experiments/{graphname}'
-        Path(rel_path).mkdir(parents=True, exist_ok=True)
-        script_dir = os.path.dirname(__file__)
-        abs_file_path = os.path.join(script_dir, rel_path)
-        f = open(f'{abs_file_path}/balanced_accuracies.txt', 'w')
-        f.write(str(balanced_accuracies))
-        f = open(f'{abs_file_path}/accuracies.txt', 'w')
-        f.write(str(accuracies))
-        f = open(f'{abs_file_path}/f1s.txt', 'w')
-        f.write(str(f1s))
-        f = open(f'{abs_file_path}/conductances.txt', 'w')
-        f.write(str(conductances))
+ 
 
 
 
