@@ -15,7 +15,8 @@ def plot_balanced_acc(graph, per, voting_threshold, axs):
     with open(f'experiments/{graph}/{per}/OG/conductance.txt') as f1, \
          open(f'experiments/{graph}/{per}/OG/og_balanced_accuracy.txt') as f2, \
          open(f'experiments/{graph}/{per}/balanced_accuracy_{voting_threshold}.txt') as f3, \
-         open(f'experiments/{graph}/{per}/n_balanced_accuracy_{voting_threshold}.txt') as f4:
+         open(f'experiments/{graph}/{per}/n_balanced_accuracy_{voting_threshold}.txt') as f4, \
+         open(f'CONE/experiments/{graph}/{per}/balanced_accuracies.txt') as f5:
         
         conductance = f1.read()
         conductance = conductance.replace('[', '')
@@ -32,6 +33,12 @@ def plot_balanced_acc(graph, per, voting_threshold, axs):
         n_balanced_accuracy = n_balanced_accuracy.replace('[', '')
         n_balanced_accuracy = n_balanced_accuracy.replace(']', '')
 
+        #CONE
+        cone_balanced_accuracy = f5.read()
+        cone_balanced_accuracy = cone_balanced_accuracy.replace('][', ', ')
+        cone_balanced_accuracy = cone_balanced_accuracy.replace('[', '')
+        cone_balanced_accuracy = cone_balanced_accuracy.replace(']', '')
+
     conductance = conductance.split(", ")
     conductance = [float(i) for i in conductance]
 
@@ -44,18 +51,23 @@ def plot_balanced_acc(graph, per, voting_threshold, axs):
     n_balanced_accuracy = n_balanced_accuracy.split(", ")
     n_balanced_accuracy = [float(i) for i in n_balanced_accuracy]
 
-    shortest_length = min(len(conductance), len(og_balanced_accuracy), len(balanced_accuracy), len(n_balanced_accuracy))
+    cone_balanced_accuracy = cone_balanced_accuracy.split(", ")
+    cone_balanced_accuracy = [float(i) for i in cone_balanced_accuracy]
+
+    shortest_length = min(len(conductance), len(og_balanced_accuracy), len(balanced_accuracy), len(n_balanced_accuracy), len(cone_balanced_accuracy))
 
     x_values = conductance[0:shortest_length]
     y1_values = og_balanced_accuracy[0:shortest_length]
     y2_values = balanced_accuracy[0:shortest_length]
     y3_values = n_balanced_accuracy[0:shortest_length]
+    y4_values = cone_balanced_accuracy[0:shortest_length]
 
     axs.plot(x_values, y1_values, color='blue', marker='o')
     axs.plot(x_values, y2_values, color='red', marker='o')
     axs.plot(x_values, y3_values, color='green', marker='o')
+    axs.plot(x_values, y4_values, color='orange', marker='o')
 
-    axs.legend(['Standard', 'Voting', 'Neighborhood'])
+    axs.legend(['Standard', 'Voting', 'Neighborhood', 'CONE'])
 
     axs.set_xlabel('Conductance')
     axs.set_ylabel('Balanced Accuracy')
@@ -67,7 +79,7 @@ def plot_f1(graph, per, voting_threshold, axs):
          open(f'experiments/{graph}/{per}/OG/og_f1.txt') as f2, \
          open(f'experiments/{graph}/{per}/f1_{voting_threshold}.txt') as f3, \
          open(f'experiments/{graph}/{per}/n_f1_{voting_threshold}.txt') as f4, \
-         open(f'CONE/experiments/{graph}/f1s.txt') as f5:
+         open(f'CONE/experiments/{graph}/{per}/f1s.txt') as f5:
 
 
         conductance = f1.read()
