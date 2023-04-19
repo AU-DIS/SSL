@@ -16,6 +16,7 @@ def plot_balanced_acc(graph, per, voting_threshold, axs):
          open(f'experiments/{graph}/{per}/OG/og_balanced_accuracy.txt') as f2, \
          open(f'experiments/{graph}/{per}/balanced_accuracy_{voting_threshold}.txt') as f3, \
          open(f'experiments/{graph}/{per}/n_balanced_accuracy_{voting_threshold}.txt') as f4:
+        
         conductance = f1.read()
         conductance = conductance.replace('[', '')
         conductance = conductance.replace(']', '')   
@@ -65,7 +66,10 @@ def plot_f1(graph, per, voting_threshold, axs):
     with open(f'experiments/{graph}/{per}/OG/conductance.txt') as f1, \
          open(f'experiments/{graph}/{per}/OG/og_f1.txt') as f2, \
          open(f'experiments/{graph}/{per}/f1_{voting_threshold}.txt') as f3, \
-         open(f'experiments/{graph}/{per}/n_f1_{voting_threshold}.txt') as f4:
+         open(f'experiments/{graph}/{per}/n_f1_{voting_threshold}.txt') as f4, \
+         open(f'CONE/experiments/{graph}/f1s.txt') as f5:
+
+
         conductance = f1.read()
         conductance = conductance.replace('[', '')
         conductance = conductance.replace(']', '')   
@@ -80,6 +84,11 @@ def plot_f1(graph, per, voting_threshold, axs):
         n_f1 = n_f1.replace('][', ', ')
         n_f1 = n_f1.replace('[', '')
         n_f1 = n_f1.replace(']', '')
+        #CONE
+        cone_f1 = f5.read()
+        cone_f1 = cone_f1.replace('][', ', ')
+        cone_f1 = cone_f1.replace('[', '')
+        cone_f1 = cone_f1.replace(']', '')
 
     conductance = conductance.split(", ")
     conductance = [float(i) for i in conductance]
@@ -93,18 +102,23 @@ def plot_f1(graph, per, voting_threshold, axs):
     n_f1 = n_f1.split(", ")
     n_f1 = [float(i) for i in n_f1]
 
-    shortest_length = min(len(conductance), len(og_f1), len(_f1), len(n_f1))
+    cone_f1 = cone_f1.split(", ")
+    cone_f1 = [float(i) for i in cone_f1]
+
+    shortest_length = min(len(conductance), len(og_f1), len(_f1), len(n_f1), len(cone_f1))
 
     x_values = conductance[0:shortest_length]
     y1_values = og_f1[0:shortest_length]
     y2_values = _f1[0:shortest_length]
     y3_values = n_f1[0:shortest_length]
+    y4_values = cone_f1[0:shortest_length]
 
     axs.plot(x_values, y1_values, color='blue', marker='o')
     axs.plot(x_values, y2_values, color='red', marker='o')
     axs.plot(x_values, y3_values, color='green', marker='o')
+    axs.plot(x_values, y4_values, color='orange', marker='o')
 
-    axs.legend(['Standard', 'Voting', 'Neighborhood'])
+    axs.legend(['Standard', 'Voting', 'Neighborhood', 'CONE'])
 
     axs.set_xlabel('Conductance')
     axs.set_ylabel('f1')
