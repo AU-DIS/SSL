@@ -8,10 +8,10 @@ if len(sys.argv) >= 3:
     per = sys.argv[2]
 
 def plot_balanced_acc(graph, per, axs):
-    with open(f'experiments/{graph}/{per}/edge_removal.txt') as f1, \
-         open(f'experiments/{graph}/{per}/OG/og_balanced_accuracy.txt') as f2, \
-         open(f'experiments/{graph}/{per}/balanced_accuracy_0.3.txt') as f3, \
-         open(f'experiments/{graph}/{per}/n_balanced_accuracy_0.3.txt') as f4:
+    with open(f'experiments/{graph}/{per}//edge_removal.txt') as f1, \
+         open(f'experiments/{graph}/{per}//og_balanced_accuracy.txt') as f2, \
+         open(f'experiments/{graph}/{per}//balanced_accuracy_0.3.txt') as f3, \
+         open(f'experiments/{graph}/{per}//n_balanced_accuracy_0.3.txt') as f4:
         edge_removal = f1.read()
         edge_removal = edge_removal.replace('][', ', ')
         edge_removal = edge_removal.replace('[', '')
@@ -62,10 +62,10 @@ def plot_balanced_acc(graph, per, axs):
     return axs
 
 def plot_f1(graph, per, axs):
-    with open(f'experiments/{graph}/{per}/edge_removal.txt') as f1, \
-         open(f'experiments/{graph}/{per}/OG/og_f1.txt') as f2, \
-         open(f'experiments/{graph}/{per}/f1_0.3.txt') as f3, \
-         open(f'experiments/{graph}/{per}/n_f1_0.3.txt') as f4:
+    with open(f'experiments/{graph}/{per}//edge_removal.txt') as f1, \
+         open(f'experiments/{graph}/{per}//og_f1.txt') as f2, \
+         open(f'experiments/{graph}/{per}//f1_0.3.txt') as f3, \
+         open(f'experiments/{graph}/{per}//n_f1_0.3.txt') as f4:
         edge_removal = f1.read()
         edge_removal = edge_removal.replace('][', ', ')
         edge_removal = edge_removal.replace('[', '')
