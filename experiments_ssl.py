@@ -35,7 +35,18 @@ def prec_recall_fscore(y_true, y_pred):
     return prec, recall, fscore
 
 def graph_edit_distance(y_true, y_pred):
-    return nx.graph_edit_distance(y_true, y_pred)
+    return nx.optimize_graph_edit_distance(y_true, y_pred)
+
+def use_graph_edit_distance_generator(generator_object, description=None):
+    num_iterations = 0
+    if description is None:
+        description = ""
+
+    for distance in generator_object:
+        num_iterations += 1
+        print(distance, description)
+        if num_iterations == 4:
+            return distance
 
 def solution_graph(G, solution_vector):
     _G = G.copy()
@@ -164,10 +175,12 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     og_precision, og_recall, og_fscore = prec_recall_fscore(v_gt, v_binary.clone().detach().numpy())
 
     S = solution_graph(G, v_binary)
-    og_ged = graph_edit_distance(Q, S)
-    print("Og graph edit distance", og_ged)
 
-    experiments_to_make = 30
+    print("Now I will find graph edit distance for og!")
+    og_ged_generator = graph_edit_distance(Q, S)
+    og_ged = use_graph_edit_distance_generator(og_ged_generator, "OG")
+
+    experiments_to_make = 5
 
     random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make=experiments_to_make) # Faked original balanced accuracy, can probably delete anyway
     votes = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
@@ -182,8 +195,8 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         v_fscore = f1(v_gt, v.clone().detach().numpy())
 
         S = solution_graph(G, v)
-        v_ged = graph_edit_distance(Q, S)
-        print(f'Graph edit distance for voting based threshold: {threshold} is {v_ged}')
+        v_ged_generator = graph_edit_distance(Q, S)
+        v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Standard with threshold: {threshold}')
 
         standard_voting_results.append({
                 "threshold": threshold,
@@ -196,6 +209,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
             })
 
     neighborhood_results = []
+    neighborhood_ged_threads = []
     for threshold in neighborhood_thresholds:
         v, _ = random_solver.find_solution(A, votes, experiments_to_make, Solution_algo.DIJKSTRA, threshold_percentage = threshold)
         v_accuracy = accur(v_gt, v.clone().detach().numpy())
@@ -205,8 +219,8 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         v_fscore = f1(v_gt, v.clone().detach().numpy())
         
         S = solution_graph(G, v)
-        v_ged = graph_edit_distance(Q, S)
-        print(f'Graph edit distance for neighborhood with threshold: {threshold} is {v_ged}')
+        v_ged_generator = graph_edit_distance(Q, S)
+        v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Neighborhood with threshold: {threshold}')
 
         neighborhood_results.append({
                 "threshold": threshold,
