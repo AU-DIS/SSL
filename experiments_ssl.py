@@ -37,15 +37,16 @@ def prec_recall_fscore(y_true, y_pred):
 def graph_edit_distance(y_true, y_pred):
     return nx.optimize_graph_edit_distance(y_true, y_pred)
 
-def use_graph_edit_distance_generator(generator_object, description=None):
+def use_graph_edit_distance_generator(generator_object, description=None, debug=False):
     num_iterations = 0
     if description is None:
         description = ""
 
     for distance in generator_object:
         num_iterations += 1
-        print(distance, description)
-        if num_iterations == 4:
+        if debug:
+            print(distance, description)
+        if num_iterations == 3:
             return distance
 
 def solution_graph(G, solution_vector):
@@ -53,6 +54,12 @@ def solution_graph(G, solution_vector):
     solution_indices = [i for i, res in enumerate(solution_vector) if res == 0]
     S = _G.subgraph(solution_indices)
     return S
+
+def spectrum_from_graph(G):
+    A = torch.tensor(nx.to_numpy_matrix(G))
+    D = torch.diag(A.sum(dim=1))
+    L = D - A
+    return torch.linalg.eigvalsh(L)
 
 def accur(y_true, y_pred):
     counter = 0
@@ -176,11 +183,11 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
 
     S = solution_graph(G, v_binary)
 
-    print("Now I will find graph edit distance for og!")
     og_ged_generator = graph_edit_distance(Q, S)
     og_ged = use_graph_edit_distance_generator(og_ged_generator, "OG")
+    og_spectrum = spectrum_from_graph(S)
 
-    experiments_to_make = 5
+    experiments_to_make = 30
 
     random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make=experiments_to_make) # Faked original balanced accuracy, can probably delete anyway
     votes = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
@@ -198,6 +205,8 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         v_ged_generator = graph_edit_distance(Q, S)
         v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Standard with threshold: {threshold}')
 
+        v_spectrum = spectrum_from_graph(S)
+
         standard_voting_results.append({
                 "threshold": threshold,
                 "acc": v_accuracy,
@@ -205,7 +214,8 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
                 "recall": v_recall,
                 "precision": v_precision,
                 "f1": v_fscore,
-                "graph_edit_distance": v_ged
+                "graph_edit_distance": v_ged,
+                "spectrum": v_spectrum.tolist()
             })
 
     neighborhood_results = []
@@ -222,6 +232,8 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         v_ged_generator = graph_edit_distance(Q, S)
         v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Neighborhood with threshold: {threshold}')
 
+        v_spectrum = spectrum_from_graph(S)
+
         neighborhood_results.append({
                 "threshold": threshold,
                 "acc": v_accuracy,
@@ -229,7 +241,8 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
                 "recall": v_recall,
                 "precision": v_precision,
                 "f1": v_fscore,
-                "graph_edit_distance": v_ged
+                "graph_edit_distance": v_ged,
+                "spectrum": v_spectrum.tolist()
             })
 
     og_results = {
@@ -238,11 +251,12 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
                 "precision": og_precision[0],
                 "recall": og_recall[0],
                 "f1": og_fscore[0],
-                "graph_edit_distance": og_ged
+                "graph_edit_distance": og_ged,
+                "spectrum": og_spectrum.tolist()
             }
 
     # Returning original accuracy
-    return standard_voting_results, neighborhood_results, condac, og_results
+    return standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum.tolist()
 
 def count_nodes(v_binary):
     return len(v_binary) - np.count_nonzero(v_binary)
@@ -375,6 +389,7 @@ if __name__ == '__main__':
     standard_voting_precisions = deepcopy(initial_dict_standard)
     standard_voting_f1s = deepcopy(initial_dict_standard)
     standard_voting_ged = deepcopy(initial_dict_standard)
+    standard_voting_spectrum = deepcopy(initial_dict_standard)
 
     # Create dictionaries for neighborhood
     neighborhood_balanced_accuracies = deepcopy(initial_dict_neighborhood)
@@ -383,6 +398,7 @@ if __name__ == '__main__':
     neighborhood_precisions = deepcopy(initial_dict_neighborhood)
     neighborhood_f1s = deepcopy(initial_dict_neighborhood)
     neighborhood_ged = deepcopy(initial_dict_neighborhood)
+    neighborhood_spectrum = deepcopy(initial_dict_neighborhood)
 
     # Lists for original results
     og_balanced_accuracies = []
@@ -391,10 +407,15 @@ if __name__ == '__main__':
     og_precisions = []
     og_f1s = []
     og_ged = []
+    og_spectrum = []
 
     graphs = []
     use_global_mu = True
     for graph_name in graph_names:
+        Path(f'experiments/{graph_name}/{per}/OG').mkdir(parents=True, exist_ok=True)
+        script_dir = os.path.dirname(__file__)
+        rel_path = f'experiments/{graph_name}/{per}'
+        abs_file_path = os.path.join(script_dir, rel_path)
         res_dict={}
         res_dict[graph_name] = {}
         best_mu = {}
@@ -427,8 +448,10 @@ if __name__ == '__main__':
                 else:
                     if use_global_mu:
                         # acc, bal_acc, condac, recall_s, precision_s, f1_s =run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
-                        standard_voting_results, neighborhood_results, condac, og_results = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
+                        standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
                         conductances.append(condac)
+                        f = open(f'{abs_file_path}/ref_spectrum.txt', 'a+')
+                        f.write(str(ref_spectrum))
                         # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
                         for result in standard_voting_results:
                             threshold = result["threshold"]
@@ -438,6 +461,7 @@ if __name__ == '__main__':
                             standard_voting_precisions[threshold].append(result["precision"])
                             standard_voting_f1s[threshold].append(result["f1"])
                             standard_voting_ged[threshold].append(result["graph_edit_distance"])
+                            standard_voting_spectrum[threshold].append(result["spectrum"])
                         for result in neighborhood_results:
                             threshold = result["threshold"]
                             neighborhood_balanced_accuracies[threshold].append(result["balanced_acc"])   
@@ -446,15 +470,17 @@ if __name__ == '__main__':
                             neighborhood_precisions[threshold].append(result["precision"])
                             neighborhood_f1s[threshold].append(result["f1"])
                             neighborhood_ged[threshold].append(result["graph_edit_distance"])
+                            neighborhood_spectrum[threshold].append(result["spectrum"])
                         og_balanced_accuracies.append(og_results["balanced_acc"])
                         og_accuracies.append(og_results["acc"])
                         og_precisions.append(og_results["precision"])
                         og_recalls.append(og_results["recall"])
                         og_f1s.append(og_results["f1"])
                         og_ged.append(og_results["graph_edit_distance"])
+                        og_spectrum.append(og_results["spectrum"])
 
                     else:
-                        standard_voting_results, neighborhood_results, condac, og_results =run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds)
+                        standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum = run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds)
                         conductances.append(condac)
                         # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
                         for result in standard_voting_results:
@@ -481,10 +507,6 @@ if __name__ == '__main__':
                         og_ged.append(og_results["graph_edit_distance"])
 
                        # Write results for standard voting 
-            Path(f'experiments/{graph_name}/{per}/OG').mkdir(parents=True, exist_ok=True)
-            script_dir = os.path.dirname(__file__)
-            rel_path = f'experiments/{graph_name}/{per}'
-            abs_file_path = os.path.join(script_dir, rel_path)
             f = open(f'{abs_file_path}/conductance.txt', 'a+')
             f.write(str(conductances))
 
@@ -508,9 +530,12 @@ if __name__ == '__main__':
                 f = open(f'{abs_file_path}/f1_{threshold}.txt', 'a+')
                 f.write(str(values))
 
-            print(f'Checking length of standard_voting items! Length is {len(standard_voting_ged.items())}')
             for threshold, values in standard_voting_ged.items():
                 f = open(f'{abs_file_path}/ged_{threshold}.txt', 'a+')
+                f.write(str(values))
+
+            for threshold, values in standard_voting_spectrum.items():
+                f = open(f'{abs_file_path}/spectrum_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             # Write results for neighborhood
@@ -534,9 +559,12 @@ if __name__ == '__main__':
                 f = open(f'{abs_file_path}/n_f1_{threshold}.txt', 'a+')
                 f.write(str(values))
 
-            print(f'Checking length of neighborhood_ged items! Length is {len(neighborhood_ged.items())}')
             for threshold, values in neighborhood_ged.items():
                 f = open(f'{abs_file_path}/n_ged_{threshold}.txt', 'a+')
+                f.write(str(values))
+
+            for threshold, values in neighborhood_spectrum.items():
+                f = open(f'{abs_file_path}/n_spectrum_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             # Write for original results
@@ -557,3 +585,6 @@ if __name__ == '__main__':
 
             f = open(f'{abs_file_path}/OG/og_ged.txt', 'a+')
             f.write(str(og_ged))
+
+            f = open(f'{abs_file_path}/OG/og_spectrum.txt', 'a+')
+            f.write(str(og_spectrum))
