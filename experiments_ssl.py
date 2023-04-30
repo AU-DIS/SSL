@@ -15,6 +15,7 @@ import pickle
 import sys
 from copy import deepcopy
 from pathlib import Path
+import math
 
 from sklearn.metrics import balanced_accuracy_score, recall_score, precision_score, f1_score, precision_recall_fscore_support
 
@@ -61,6 +62,45 @@ def spectrum_from_graph(G):
     L = D - A
     return torch.linalg.eigvalsh(L)
 
+# Calculates the sum of the absolute entry-wise difference between two torch tensors.
+# If |X| < |Y|, the last eigenvalue of G2 is copied, untill the length of both lists are of same length.
+def spectrum_abs_diff(X, Y):
+    if len(Y) == 0:
+        return math.inf
+
+    if len(Y) < len(X):
+        largest_eigenvalue = Y[-1]
+        eigenvalues_to_add = len(X) - len(Y)
+        extra_eigenvalues = torch.full((eigenvalues_to_add,), largest_eigenvalue)
+        Y = torch.cat((Y, extra_eigenvalues))
+
+    Y = Y[:len(X)]
+    return torch.sum(torch.abs(torch.sub(X, Y))).item()
+
+def test_spectrum_abs_diff():
+    ref = torch.tensor([-1.874207407808E-15,	2.682128349763E-01,	9.692844069884E-01,	1.000000000000E+00,	1.888921131972E+00,	3.000000000000E+00,	3.239240861833E+00,	4.528519547368E+00,	4.584230646880E+00,	6.067163735274E+00,	6.972770944034E+00,	7.481655890675E+00])
+
+    og = torch.tensor([-1.52483190789405E-15,	-1.05274498428316E-15,	-6.16758854339913E-16,	-3.66102675372787E-16,	1.07386426143722E-16,	6.11255181162008E-16,	1.56568879456694E-15,	1.31607933673826E-01,	2.25185406989786E-01,	6.47266783843268E-01,	2.00000000000000E+00,	2.00000000000000E+00,	2.62744224059526E+00,	3.00000000000000E+00,	3.00000000000000E+00,	3.41042274867308E+00,	3.51104938348872E+00,	4.74158760732876E+00,	5.37078044506606E+00,	5.99999999999999E+00,	6.00000000000000E+00,	6.00000000000000E+00,	6.00000000000000E+00,	6.21091198406082E+00,	7.12374546628037E+00])
+    og_diff = spectrum_abs_diff(ref, og)
+    expected = 34.9959398754931  # calculated in excel
+    assert math.isclose(og_diff, expected, abs_tol = 1e-4)
+
+    standard_voting = torch.tensor([3.59000232651452000E-16,	8.15644757235431000E-01,	1.06150705134328000E+00,	2.48928787911476000E+00,	2.96602525278443000E+00,	3.72664104617151000E+00,	5.00590060517529000E+00,	5.73255758501802000E+00,	6.01000779226345000E+00,	6.89624807730457000E+00,	7.25598723484175000E+00,	8.08242566678287000E+00,	8.60897879344057000E+00,	9.23614614084348000E+00,	9.86728250814203000E+00,	1.02453596095385000E+01])
+    standard_voting_diff = spectrum_abs_diff(ref, standard_voting)
+    expected = 10.0422329480354 # calculated in excel
+    assert math.isclose(standard_voting_diff, expected, abs_tol = 1e-4)
+
+    neighborhood = torch.tensor([-2.53356363666412000E-15,	9.11199028661349000E-01,	2.77845218364703000E+00,	3.40885154889223000E+00,	4.87057852129576000E+00,	5.19726549913658000E+00,	5.55836878028381000E+00,	6.48753597002133000E+00,	7.11976772271421000E+00,	8.06233221646075000E+00,	8.86293166343401000E+00,	9.03714889034365000E+00,	9.70556797510924000E+00])
+    neighborhood_diff = spectrum_abs_diff(ref, neighborhood)
+    expected = 22.2944320248908 # calculated in excel
+    assert math.isclose(neighborhood_diff, expected, abs_tol = 1e-4)
+
+    # This case testes that if there's fewer items in Y compared to X, then the last eigenvalue is added multiple times to Y
+    artificial_og = torch.tensor([-1.52483190789405E-15,	-1.05274498428316E-15,	-6.16758854339913E-16,	-3.66102675372787E-16,	1.07386426143722E-16,	6.11255181162008E-16,	1.56568879456694E-15,	1.31607933673826E-01,	2.25185406989786E-01,	6.47266783843268E-01 ])
+    artificial_og_diff = spectrum_abs_diff(ref, artificial_og)
+    expected = 37.7014063078065  # calculated in excel
+    assert math.isclose(artificial_og_diff, expected, abs_tol = 1e-4)
+
 def accur(y_true, y_pred):
     counter = 0
     correct = 0
@@ -80,6 +120,8 @@ def prune_graph(G, part_nodes):
     G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
 
 def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborhood_thresholds=[]):
+    test_spectrum_abs_diff()
+
     print(f'Reading from {edgefile}')
     A1=edgelist_to_adjmatrix(edgefile)
     G=nx.from_numpy_matrix(A1)
@@ -186,8 +228,12 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     og_ged_generator = graph_edit_distance(Q, S)
     og_ged = use_graph_edit_distance_generator(og_ged_generator, "OG")
     og_spectrum = spectrum_from_graph(S)
+    og_diff = spectrum_abs_diff(ref_spectrum, og_spectrum)
+    print("Og diff:", og_diff)
+    print("Og balanced acc:", original_balanced)
+    print("Og f1:", og_fscore)
 
-    experiments_to_make = 30
+    experiments_to_make = 5
 
     random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make=experiments_to_make) # Faked original balanced accuracy, can probably delete anyway
     votes = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
@@ -205,7 +251,13 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         v_ged_generator = graph_edit_distance(Q, S)
         v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Standard with threshold: {threshold}')
 
+        print(f'Standard voting with threshold: {threshold}')
         v_spectrum = spectrum_from_graph(S)
+        v_spectrum_diff = spectrum_abs_diff(ref_spectrum, v_spectrum)
+
+        print("v diff:", v_spectrum_diff)
+        print("v balanced:", v_balanced_accuracy)
+        print("v fscore:", v_fscore)
 
         standard_voting_results.append({
                 "threshold": threshold,
@@ -233,6 +285,12 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Neighborhood with threshold: {threshold}')
 
         v_spectrum = spectrum_from_graph(S)
+        print(f'Neighborhood with threshold: {threshold}')
+        v_spectrum_diff = spectrum_abs_diff(ref_spectrum, v_spectrum)
+
+        print("v diff:", v_spectrum_diff)
+        print("v balanced:", v_balanced_accuracy)
+        print("v fscore:", v_fscore)
 
         neighborhood_results.append({
                 "threshold": threshold,
@@ -374,8 +432,7 @@ if __name__ == '__main__':
     per = float(sys.argv[4])
     graph_names = [dataset]
 
-
-    standard_voting_thresholds = [0.2]
+    standard_voting_thresholds = [0.2, 0.4, 0.6]
     neighborhood_thresholds = [0.3]
     conductances = []
 
