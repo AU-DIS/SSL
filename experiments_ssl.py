@@ -228,10 +228,13 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     og_ged_generator = graph_edit_distance(Q, S)
     og_ged = use_graph_edit_distance_generator(og_ged_generator, "OG")
     og_spectrum = spectrum_from_graph(S)
-    og_diff = spectrum_abs_diff(ref_spectrum, og_spectrum)
-    print("Og diff:", og_diff)
+    og_spectrum_diff = spectrum_abs_diff(ref_spectrum, og_spectrum)
+    print("Og diff:", og_spectrum_diff)
     print("Og balanced acc:", original_balanced)
     print("Og f1:", og_fscore)
+
+    nodes_in_solution = count_nodes(v_binary)
+    print("Nodes in solution:", nodes_in_solution)
 
     experiments_to_make = 5
 
@@ -259,6 +262,9 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         print("v balanced:", v_balanced_accuracy)
         print("v fscore:", v_fscore)
 
+        nodes_in_solution = count_nodes(v)
+        print("Nodes in solution:", nodes_in_solution)
+
         standard_voting_results.append({
                 "threshold": threshold,
                 "acc": v_accuracy,
@@ -267,7 +273,8 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
                 "precision": v_precision,
                 "f1": v_fscore,
                 "graph_edit_distance": v_ged,
-                "spectrum": v_spectrum.tolist()
+                "spectrum": v_spectrum.tolist(),
+                "spectrum_diff": v_spectrum_diff
             })
 
     neighborhood_results = []
@@ -292,6 +299,9 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         print("v balanced:", v_balanced_accuracy)
         print("v fscore:", v_fscore)
 
+        nodes_in_solution = count_nodes(v)
+        print("Nodes in solution:", nodes_in_solution)
+
         neighborhood_results.append({
                 "threshold": threshold,
                 "acc": v_accuracy,
@@ -300,7 +310,8 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
                 "precision": v_precision,
                 "f1": v_fscore,
                 "graph_edit_distance": v_ged,
-                "spectrum": v_spectrum.tolist()
+                "spectrum": v_spectrum.tolist(),
+                "spectrum_diff": v_spectrum_diff
             })
 
     og_results = {
@@ -310,7 +321,8 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
                 "recall": og_recall[0],
                 "f1": og_fscore[0],
                 "graph_edit_distance": og_ged,
-                "spectrum": og_spectrum.tolist()
+                "spectrum": og_spectrum.tolist(),
+                "spectrum_diff": og_spectrum_diff
             }
 
     # Returning original accuracy
@@ -447,6 +459,7 @@ if __name__ == '__main__':
     standard_voting_f1s = deepcopy(initial_dict_standard)
     standard_voting_ged = deepcopy(initial_dict_standard)
     standard_voting_spectrum = deepcopy(initial_dict_standard)
+    standard_voting_spectrum_diff = deepcopy(initial_dict_standard)
 
     # Create dictionaries for neighborhood
     neighborhood_balanced_accuracies = deepcopy(initial_dict_neighborhood)
@@ -456,6 +469,7 @@ if __name__ == '__main__':
     neighborhood_f1s = deepcopy(initial_dict_neighborhood)
     neighborhood_ged = deepcopy(initial_dict_neighborhood)
     neighborhood_spectrum = deepcopy(initial_dict_neighborhood)
+    neighborhood_spectrum_diff = deepcopy(initial_dict_neighborhood)
 
     # Lists for original results
     og_balanced_accuracies = []
@@ -465,6 +479,7 @@ if __name__ == '__main__':
     og_f1s = []
     og_ged = []
     og_spectrum = []
+    og_spectrum_diff = []
 
     graphs = []
     use_global_mu = True
@@ -519,6 +534,7 @@ if __name__ == '__main__':
                             standard_voting_f1s[threshold].append(result["f1"])
                             standard_voting_ged[threshold].append(result["graph_edit_distance"])
                             standard_voting_spectrum[threshold].append(result["spectrum"])
+                            standard_voting_spectrum_diff[threshold].append(result["spectrum_diff"])
                         for result in neighborhood_results:
                             threshold = result["threshold"]
                             neighborhood_balanced_accuracies[threshold].append(result["balanced_acc"])   
@@ -528,6 +544,7 @@ if __name__ == '__main__':
                             neighborhood_f1s[threshold].append(result["f1"])
                             neighborhood_ged[threshold].append(result["graph_edit_distance"])
                             neighborhood_spectrum[threshold].append(result["spectrum"])
+                            neighborhood_spectrum_diff[threshold].append(result["spectrum_diff"])
                         og_balanced_accuracies.append(og_results["balanced_acc"])
                         og_accuracies.append(og_results["acc"])
                         og_precisions.append(og_results["precision"])
@@ -535,6 +552,7 @@ if __name__ == '__main__':
                         og_f1s.append(og_results["f1"])
                         og_ged.append(og_results["graph_edit_distance"])
                         og_spectrum.append(og_results["spectrum"])
+                        og_spectrum_diff.append(og_results["spectrum_diff"])
 
                     else:
                         standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum = run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds)
@@ -595,6 +613,10 @@ if __name__ == '__main__':
                 f = open(f'{abs_file_path}/spectrum_{threshold}.txt', 'a+')
                 f.write(str(values))
 
+            for threshold, values in standard_voting_spectrum_diff.items():
+                f = open(f'{abs_file_path}/spectrum_diff_{threshold}.txt', 'a+')
+                f.write(str(values))
+
             # Write results for neighborhood
             for threshold, values in neighborhood_balanced_accuracies.items():
                 f = open(f'{abs_file_path}/n_balanced_accuracy_{threshold}.txt', 'a+')
@@ -624,6 +646,10 @@ if __name__ == '__main__':
                 f = open(f'{abs_file_path}/n_spectrum_{threshold}.txt', 'a+')
                 f.write(str(values))
 
+            for threshold, values in neighborhood_spectrum_diff.items():
+                f = open(f'{abs_file_path}/n_spectrum_diff_{threshold}.txt', 'a+')
+                f.write(str(values))
+
             # Write for original results
             f = open(f'{abs_file_path}/OG/og_balanced_accuracy.txt', 'a+')
             f.write(str(og_balanced_accuracies))
@@ -645,3 +671,6 @@ if __name__ == '__main__':
 
             f = open(f'{abs_file_path}/OG/og_spectrum.txt', 'a+')
             f.write(str(og_spectrum))
+
+            f = open(f'{abs_file_path}/OG/og_spectrum_diff.txt', 'a+')
+            f.write(str(og_spectrum_diff))
