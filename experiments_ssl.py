@@ -35,21 +35,6 @@ def prec_recall_fscore(y_true, y_pred):
     prec, recall, fscore, _ = precision_recall_fscore_support(y_true, y_pred)
     return prec, recall, fscore
 
-def graph_edit_distance(y_true, y_pred):
-    return nx.optimize_graph_edit_distance(y_true, y_pred)
-
-def use_graph_edit_distance_generator(generator_object, description=None, debug=False):
-    num_iterations = 0
-    if description is None:
-        description = ""
-
-    for distance in generator_object:
-        num_iterations += 1
-        if debug:
-            print(distance, description)
-        if num_iterations == 3:
-            return distance
-
 def solution_graph(G, solution_vector):
     _G = G.copy()
     solution_indices = [i for i, res in enumerate(solution_vector) if res == 0]
@@ -225,8 +210,6 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
 
     S = solution_graph(G, v_binary)
 
-    og_ged_generator = graph_edit_distance(Q, S)
-    og_ged = use_graph_edit_distance_generator(og_ged_generator, "OG")
     og_spectrum = spectrum_from_graph(S)
     og_spectrum_diff = spectrum_abs_diff(ref_spectrum, og_spectrum)
     print("Og diff:", og_spectrum_diff)
@@ -253,8 +236,6 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         v_fscore = f1(v_gt, v.clone().detach().numpy())
 
         S = solution_graph(G, v)
-        v_ged_generator = graph_edit_distance(Q, S)
-        v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Standard with threshold: {threshold}')
 
         print(f'Standard voting with threshold: {threshold}')
         v_spectrum = spectrum_from_graph(S)
@@ -274,13 +255,11 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
                 "recall": v_recall,
                 "precision": v_precision,
                 "f1": v_fscore,
-                "graph_edit_distance": v_ged,
                 "spectrum": v_spectrum.tolist(),
                 "spectrum_diff": v_spectrum_diff
             })
 
     neighborhood_results = []
-    neighborhood_ged_threads = []
     for threshold in neighborhood_thresholds:
         v, _ = random_solver.find_solution(A, votes, experiments_to_make, Solution_algo.DIJKSTRA, threshold_percentage = threshold)
         v_accuracy = accur(v_gt, v.clone().detach().numpy())
@@ -290,8 +269,6 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         v_fscore = f1(v_gt, v.clone().detach().numpy())
         
         S = solution_graph(G, v)
-        v_ged_generator = graph_edit_distance(Q, S)
-        v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Neighborhood with threshold: {threshold}')
 
         v_spectrum = spectrum_from_graph(S)
         print(f'Neighborhood with threshold: {threshold}')
@@ -311,7 +288,6 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
                 "recall": v_recall,
                 "precision": v_precision,
                 "f1": v_fscore,
-                "graph_edit_distance": v_ged,
                 "spectrum": v_spectrum.tolist(),
                 "spectrum_diff": v_spectrum_diff
             })
@@ -322,7 +298,6 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
                 "precision": og_precision[0],
                 "recall": og_recall[0],
                 "f1": og_fscore[0],
-                "graph_edit_distance": og_ged,
                 "spectrum": og_spectrum.tolist(),
                 "spectrum_diff": og_spectrum_diff
             }
@@ -461,7 +436,6 @@ if __name__ == '__main__':
     standard_voting_recalls = deepcopy(initial_dict_standard)
     standard_voting_precisions = deepcopy(initial_dict_standard)
     standard_voting_f1s = deepcopy(initial_dict_standard)
-    standard_voting_ged = deepcopy(initial_dict_standard)
     standard_voting_spectrum = deepcopy(initial_dict_standard)
     standard_voting_spectrum_diff = deepcopy(initial_dict_standard)
 
@@ -471,7 +445,6 @@ if __name__ == '__main__':
     neighborhood_recalls = deepcopy(initial_dict_neighborhood)   
     neighborhood_precisions = deepcopy(initial_dict_neighborhood)
     neighborhood_f1s = deepcopy(initial_dict_neighborhood)
-    neighborhood_ged = deepcopy(initial_dict_neighborhood)
     neighborhood_spectrum = deepcopy(initial_dict_neighborhood)
     neighborhood_spectrum_diff = deepcopy(initial_dict_neighborhood)
 
@@ -481,7 +454,6 @@ if __name__ == '__main__':
     og_recalls = []
     og_precisions = []
     og_f1s = []
-    og_ged = []
     og_spectrum = []
     og_spectrum_diff = []
 
@@ -537,7 +509,6 @@ if __name__ == '__main__':
                             standard_voting_recalls[threshold].append(result["recall"])
                             standard_voting_precisions[threshold].append(result["precision"])
                             standard_voting_f1s[threshold].append(result["f1"])
-                            standard_voting_ged[threshold].append(result["graph_edit_distance"])
                             standard_voting_spectrum[threshold].append(result["spectrum"])
                             standard_voting_spectrum_diff[threshold].append(result["spectrum_diff"])
                         for result in neighborhood_results:
@@ -547,7 +518,6 @@ if __name__ == '__main__':
                             neighborhood_recalls[threshold].append(result["recall"])
                             neighborhood_precisions[threshold].append(result["precision"])
                             neighborhood_f1s[threshold].append(result["f1"])
-                            neighborhood_ged[threshold].append(result["graph_edit_distance"])
                             neighborhood_spectrum[threshold].append(result["spectrum"])
                             neighborhood_spectrum_diff[threshold].append(result["spectrum_diff"])
                         og_balanced_accuracies.append(og_results["balanced_acc"])
@@ -555,7 +525,6 @@ if __name__ == '__main__':
                         og_precisions.append(og_results["precision"])
                         og_recalls.append(og_results["recall"])
                         og_f1s.append(og_results["f1"])
-                        og_ged.append(og_results["graph_edit_distance"])
                         og_spectrum.append(og_results["spectrum"])
                         og_spectrum_diff.append(og_results["spectrum_diff"])
 
@@ -571,7 +540,6 @@ if __name__ == '__main__':
                             standard_voting_recalls[threshold].append(result["recall"])
                             standard_voting_precisions[threshold].append(result["precision"])
                             standard_voting_f1s[threshold].append(result["f1"])
-                            standard_voting_ged[threshold].append(result["graph_edit_distance"])
                         for result in neighborhood_results:
                             threshold = result["threshold"]
                             neighborhood_balanced_accuracies[threshold].append(result["balanced_acc"])   
@@ -579,13 +547,11 @@ if __name__ == '__main__':
                             neighborhood_recalls[threshold].append(result["recall"])
                             neighborhood_precisions[threshold].append(result["precision"])
                             neighborhood_f1s[threshold].append(result["f1"])
-                            neighborhood_ged[threshold].append(result["graph_edit_distance"])
                         og_balanced_accuracies.append(og_results["balanced_acc"])
                         og_accuracies.append(og_results["acc"])
                         og_precisions.append(og_results["precision"])
                         og_recalls.append(og_results["recall"])
                         og_f1s.append(og_results["f1"])
-                        og_ged.append(og_results["graph_edit_distance"])
 
                        # Write results for standard voting 
             rel_path = f'experiments_edge_removal/{graph_name}/{per}/{percentage_lower_bound}'
@@ -619,10 +585,6 @@ if __name__ == '__main__':
                 f = open(f'{abs_file_path}/f1_{threshold}.txt', 'a+')
                 f.write(str(values))
 
-            for threshold, values in standard_voting_ged.items():
-                f = open(f'{abs_file_path}/ged_{threshold}.txt', 'a+')
-                f.write(str(values))
-
             for threshold, values in standard_voting_spectrum.items():
                 f = open(f'{abs_file_path}/spectrum_{threshold}.txt', 'a+')
                 f.write(str(values))
@@ -652,10 +614,6 @@ if __name__ == '__main__':
                 f = open(f'{abs_file_path}/n_f1_{threshold}.txt', 'a+')
                 f.write(str(values))
 
-            for threshold, values in neighborhood_ged.items():
-                f = open(f'{abs_file_path}/n_ged_{threshold}.txt', 'a+')
-                f.write(str(values))
-
             for threshold, values in neighborhood_spectrum.items():
                 f = open(f'{abs_file_path}/n_spectrum_{threshold}.txt', 'a+')
                 f.write(str(values))
@@ -679,9 +637,6 @@ if __name__ == '__main__':
 
             f = open(f'{abs_file_path}/og_f1.txt', 'a+')
             f.write(str(og_f1s))
-
-            f = open(f'{abs_file_path}/og_ged.txt', 'a+')
-            f.write(str(og_ged))
 
             f = open(f'{abs_file_path}/og_spectrum.txt', 'a+')
             f.write(str(og_spectrum))
