@@ -1,1 +1,0 @@
-30% edge removal, 30 iterations

@@ -75,7 +75,7 @@ class Solution_algo(Enum):
     DIJKSTRA = 2
 
 class VotingSubgraphIsomorpishmSolver:
-    def __init__(self, A, ref_spectrum, problem_params, solver_params, v_gt, query, save_loss_terms=True, experiments_to_make = 20):
+    def __init__(self, A, ref_spectrum, problem_params, solver_params, v_gt, query, save_loss_terms=True, experiments_to_make = 20, edge_removal = 0.3):
         self.A = A
         self.ref_spectrum = ref_spectrum
         self.problem_params = problem_params
@@ -85,11 +85,13 @@ class VotingSubgraphIsomorpishmSolver:
         self.query = query
         self.length_of_query = len(query)
         self.experiments_to_make = experiments_to_make
+        self.edge_removal = edge_removal
 
     def solve(self, max_outer_iters=10, max_inner_iters=10, show_iter=10, verbose=True):
         original_A = self.A.detach().clone()
         edge_list = adjmatrix_to_edgelist(self.A)
-        edges_removal_array = [0.3] * self.experiments_to_make # FAKE IT
+        print("edge_removal:", self.edge_removal)
+        edges_removal_array = [self.edge_removal] * self.experiments_to_make # FAKE IT
  
         n = original_A.shape[0]
         votes = torch.zeros(n)

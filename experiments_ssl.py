@@ -55,7 +55,7 @@ def prune_graph(G, part_nodes):
     print("removing edges:", list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
     G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
 
-def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborhood_thresholds=[]):
+def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborhood_thresholds=[], edge_removal=0.3):
     print(f'Reading from {edgefile}')
     A1=edgelist_to_adjmatrix(edgefile)
     G=nx.from_numpy_matrix(A1)
@@ -157,46 +157,46 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
 
     experiments_to_make = 30
 
-    #random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make=experiments_to_make) # Faked original balanced accuracy, can probably delete anyway
+    random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make=experiments_to_make, edge_removal=edge_removal) # Faked original balanced accuracy, can probably delete anyway
     # v_randomized, _ = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
-    #votes = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
+    votes = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
 
 
     standard_voting_results = []
-    # for threshold in standard_voting_thresholds:
-    #     v, _ = random_solver.find_solution(A, votes, experiments_to_make, Solution_algo.THRESHOLD, threshold = threshold)
-    #     v_accuracy = accur(v_gt, v.clone().detach().numpy())
-    #     v_balanced_accuracy = balanced_acc(v_gt, v.clone().detach().numpy())
-    #     v_recall = recall(v_gt, v.clone().detach().numpy())
-    #     v_precision = precision(v_gt, v.clone().detach().numpy())
-    #     v_fscore = f1(v_gt, v.clone().detach().numpy())
+    for threshold in standard_voting_thresholds:
+        v, _ = random_solver.find_solution(A, votes, experiments_to_make, Solution_algo.THRESHOLD, threshold = threshold)
+        v_accuracy = accur(v_gt, v.clone().detach().numpy())
+        v_balanced_accuracy = balanced_acc(v_gt, v.clone().detach().numpy())
+        v_recall = recall(v_gt, v.clone().detach().numpy())
+        v_precision = precision(v_gt, v.clone().detach().numpy())
+        v_fscore = f1(v_gt, v.clone().detach().numpy())
 
-    #     standard_voting_results.append({
-    #             "threshold": threshold,
-    #             "acc": v_accuracy,
-    #             "balanced_acc": v_balanced_accuracy,
-    #             "recall": v_recall,
-    #             "precision": v_precision,
-    #             "f1": v_fscore,
-    #         })
+        standard_voting_results.append({
+                "threshold": threshold,
+                "acc": v_accuracy,
+                "balanced_acc": v_balanced_accuracy,
+                "recall": v_recall,
+                "precision": v_precision,
+                "f1": v_fscore,
+            })
 
     neighborhood_results = []
-    # for threshold in neighborhood_thresholds:
-    #     v, _ = random_solver.find_solution(A, votes, experiments_to_make, Solution_algo.DIJKSTRA, threshold_percentage = threshold)
-    #     v_accuracy = accur(v_gt, v.clone().detach().numpy())
-    #     v_balanced_accuracy = balanced_acc(v_gt, v.clone().detach().numpy())
-    #     v_recall = recall(v_gt, v.clone().detach().numpy())
-    #     v_precision = precision(v_gt, v.clone().detach().numpy())
-    #     v_fscore = f1(v_gt, v.clone().detach().numpy())
+    for threshold in neighborhood_thresholds:
+        v, _ = random_solver.find_solution(A, votes, experiments_to_make, Solution_algo.DIJKSTRA, threshold_percentage = threshold)
+        v_accuracy = accur(v_gt, v.clone().detach().numpy())
+        v_balanced_accuracy = balanced_acc(v_gt, v.clone().detach().numpy())
+        v_recall = recall(v_gt, v.clone().detach().numpy())
+        v_precision = precision(v_gt, v.clone().detach().numpy())
+        v_fscore = f1(v_gt, v.clone().detach().numpy())
 
-    #     neighborhood_results.append({
-    #             "threshold": threshold,
-    #             "acc": v_accuracy,
-    #             "balanced_acc": v_balanced_accuracy,
-    #             "recall": v_recall,
-    #             "precision": v_precision,
-    #             "f1": v_fscore,
-    #         })
+        neighborhood_results.append({
+                "threshold": threshold,
+                "acc": v_accuracy,
+                "balanced_acc": v_balanced_accuracy,
+                "recall": v_recall,
+                "precision": v_precision,
+                "f1": v_fscore,
+            })
 
     og_results = {
                 "acc": original_accuracy,
@@ -323,12 +323,16 @@ if __name__ == '__main__':
     percentage_lower_bound = int(sys.argv[2])
     percentage_upper_bound = int(sys.argv[3])
     per = float(sys.argv[4])
+    edge_removal = float(sys.argv[5])
     graph_names = [dataset]
 
+    # standard_voting_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+    standard_voting_thresholds = [0.3]
+    # neighborhood_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+    neighborhood_thresholds = [0.3]
 
-    standard_voting_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
-    neighborhood_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     conductances = []
+    edge_removals = []
     initial_dict = {threshold: [] for threshold in standard_voting_thresholds}
 
     # Create dictionaries for standard voting
@@ -387,8 +391,9 @@ if __name__ == '__main__':
                 else:
                     if use_global_mu:
                         # acc, bal_acc, condac, recall_s, precision_s, f1_s =run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
-                        standard_voting_results, neighborhood_results, condac, og_results = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
+                        standard_voting_results, neighborhood_results, condac, og_results = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds, edge_removal=edge_removal)
                         conductances.append(condac)
+                        edge_removals.append(edge_removal)
                         # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
                         for result in standard_voting_results:
                             threshold = result["threshold"]
@@ -413,6 +418,7 @@ if __name__ == '__main__':
                     else:
                         standard_voting_results, neighborhood_results, condac, og_results =run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds)
                         conductances.append(condac)
+                        edge_removals.append(edge_removal)
                         # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
                         for result in standard_voting_results:
                             threshold = result["threshold"]
@@ -435,73 +441,77 @@ if __name__ == '__main__':
                         og_f1s.append(og_results["f1"])
 
                        # Write results for standard voting 
-            Path(f'experiments/{graph_name}/{per}/OG').mkdir(parents=True, exist_ok=True)
+            rel_path = f'experiments/{graph_name}/{per}'
+            Path(rel_path).mkdir(parents=True, exist_ok=True)
             script_dir = os.path.dirname(__file__)
-            rel_path = f'experiments/{graph_name}/{per}/OG'
             abs_file_path = os.path.join(script_dir, rel_path)
+            
             f = open(f'{abs_file_path}/conductance.txt', 'a+')
             f.write(str(conductances))
 
-            # for threshold, values in standard_voting_balanced_accuracies.items():
-            #     f = open(f'{abs_file_path}/balanced_accuracy_{threshold}.txt', 'a+')
-            #     f.write(str(values))
+            f = open(f'{abs_file_path}/edge_removal.txt', 'a+')
+            f.write(str(edge_removals))
 
-            # for threshold, values in standard_voting_accuracies.items():
-            #     f = open(f'{abs_file_path}/accuracy_{threshold}.txt', 'a+')
-            #     f.write(str(values))
+            for threshold, values in standard_voting_balanced_accuracies.items():
+                f = open(f'{abs_file_path}/balanced_accuracy_{threshold}.txt', 'a+')
+                f.write(str(values))
 
-            # for threshold, values in standard_voting_recalls.items():
-            #     f = open(f'{abs_file_path}/recall_{threshold}.txt', 'a+')
-            #     f.write(str(values))
+            for threshold, values in standard_voting_accuracies.items():
+                f = open(f'{abs_file_path}/accuracy_{threshold}.txt', 'a+')
+                f.write(str(values))
 
-            # for threshold, values in standard_voting_precisions.items():
-            #     f = open(f'{abs_file_path}/precision_{threshold}.txt', 'a+')
-            #     f.write(str(values))
+            for threshold, values in standard_voting_recalls.items():
+                f = open(f'{abs_file_path}/recall_{threshold}.txt', 'a+')
+                f.write(str(values))
 
-            # for threshold, values in standard_voting_f1s.items():
-            #     f = open(f'{abs_file_path}/f1_{threshold}.txt', 'a+')
-            #     f.write(str(values))
+            for threshold, values in standard_voting_precisions.items():
+                f = open(f'{abs_file_path}/precision_{threshold}.txt', 'a+')
+                f.write(str(values))
 
-            # # Write results for neighborhood
-            # for threshold, values in neighborhood_balanced_accuracies.items():
-            #     f = open(f'{abs_file_path}/n_balanced_accuracy_{threshold}.txt', 'a+')
-            #     f.write(str(values))
+            for threshold, values in standard_voting_f1s.items():
+                f = open(f'{abs_file_path}/f1_{threshold}.txt', 'a+')
+                f.write(str(values))
 
-            # for threshold, values in neighborhood_accuracies.items():
-            #     f = open(f'{abs_file_path}/n_accuracy_{threshold}.txt', 'a+')
-            #     f.write(str(values))
+            # Write results for neighborhood
+            for threshold, values in neighborhood_balanced_accuracies.items():
+                f = open(f'{abs_file_path}/n_balanced_accuracy_{threshold}.txt', 'a+')
+                f.write(str(values))
 
-            # for threshold, values in neighborhood_recalls.items():
-            #     f = open(f'{abs_file_path}/n_recall_{threshold}.txt', 'a+')
-            #     f.write(str(values))
+            for threshold, values in neighborhood_accuracies.items():
+                f = open(f'{abs_file_path}/n_accuracy_{threshold}.txt', 'a+')
+                f.write(str(values))
 
-            # for threshold, values in neighborhood_precisions.items():
-            #     f = open(f'{abs_file_path}/n_precision_{threshold}.txt', 'a+')
-            #     f.write(str(values))
+            for threshold, values in neighborhood_recalls.items():
+                f = open(f'{abs_file_path}/n_recall_{threshold}.txt', 'a+')
+                f.write(str(values))
 
-            # for threshold, values in neighborhood_f1s.items():
-            #     f = open(f'{abs_file_path}/n_f1_{threshold}.txt', 'a+')
-            #     f.write(str(values))
+            for threshold, values in neighborhood_precisions.items():
+                f = open(f'{abs_file_path}/n_precision_{threshold}.txt', 'a+')
+                f.write(str(values))
+
+            for threshold, values in neighborhood_f1s.items():
+                f = open(f'{abs_file_path}/n_f1_{threshold}.txt', 'a+')
+                f.write(str(values))
 
             # Write for original results#
 
-            f = open(f'{abs_file_path}/og_balanced_accuracy.txt', 'a+')
-            f.write(str(og_balanced_accuracies))
+            # f = open(f'{abs_file_path}/og_balanced_accuracy.txt', 'a+')
+            # f.write(str(og_balanced_accuracies))
 
-            f = open(f'{abs_file_path}/og_accuracy.txt', 'a+')
-            f.write(str(og_accuracies))
+            # f = open(f'{abs_file_path}/og_accuracy.txt', 'a+')
+            # f.write(str(og_accuracies))
 
-            f = open(f'{abs_file_path}/og_recall.txt', 'a+')
-            f.write(str(og_recalls))
+            # f = open(f'{abs_file_path}/og_recall.txt', 'a+')
+            # f.write(str(og_recalls))
 
-            f = open(f'{abs_file_path}/og_precision.txt', 'a+')
-            f.write(str(og_precisions))
+            # f = open(f'{abs_file_path}/og_precision.txt', 'a+')
+            # f.write(str(og_precisions))
 
-            f = open(f'{abs_file_path}/og_f1.txt', 'a+')
-            f.write(str(og_f1s))
+            # f = open(f'{abs_file_path}/og_f1.txt', 'a+')
+            # f.write(str(og_f1s))
 
-            data_file = open(f'{graph_name}.txt', 'w')
-            data_file.write(str(res_dict))
+            # data_file = open(f'{graph_name}.txt', 'w')
+            # data_file.write(str(res_dict))
 
             # if(True):
             #     name_to_save = graph_name+"_"+str(folder_no)
