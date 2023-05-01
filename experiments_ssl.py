@@ -447,8 +447,8 @@ if __name__ == '__main__':
     edge_removal = float(sys.argv[5])
     graph_names = [dataset]
 
-    standard_voting_thresholds = [0.2, 0.4, 0.6]
-    neighborhood_thresholds = [0.3]
+    standard_voting_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+    neighborhood_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     conductances = []
     edge_removals = []
 
@@ -488,9 +488,9 @@ if __name__ == '__main__':
     graphs = []
     use_global_mu = True
     for graph_name in graph_names:
-        Path(f'experiments/{graph_name}/{per}/OG').mkdir(parents=True, exist_ok=True)
         script_dir = os.path.dirname(__file__)
-        rel_path = f'experiments/{graph_name}/{per}'
+        rel_path = f'experiments_edge_removal/{graph_name}/{per}/{percentage_lower_bound}'
+        Path(rel_path).mkdir(parents=True, exist_ok=True)
         abs_file_path = os.path.join(script_dir, rel_path)
         res_dict={}
         res_dict[graph_name] = {}
@@ -588,13 +588,16 @@ if __name__ == '__main__':
                         og_ged.append(og_results["graph_edit_distance"])
 
                        # Write results for standard voting 
-            rel_path = f'experiments/{graph_name}/{per}'
+            rel_path = f'experiments_edge_removal/{graph_name}/{per}/{percentage_lower_bound}'
             Path(rel_path).mkdir(parents=True, exist_ok=True)
             script_dir = os.path.dirname(__file__)
             abs_file_path = os.path.join(script_dir, rel_path)
             
             f = open(f'{abs_file_path}/conductance.txt', 'a+')
             f.write(str(conductances))
+
+            f = open(f'{abs_file_path}/edge_removal.txt', 'a+')
+            f.write(str(edge_removals))
 
             for threshold, values in standard_voting_balanced_accuracies.items():
                 f = open(f'{abs_file_path}/balanced_accuracy_{threshold}.txt', 'a+')
@@ -618,12 +621,6 @@ if __name__ == '__main__':
 
             for threshold, values in standard_voting_ged.items():
                 f = open(f'{abs_file_path}/ged_{threshold}.txt', 'a+')
-                f.write(str(values))
-            f = open(f'{abs_file_path}/edge_removal.txt', 'a+')
-            f.write(str(edge_removals))
-
-            for threshold, values in standard_voting_balanced_accuracies.items():
-                f = open(f'{abs_file_path}/balanced_accuracy_{threshold}.txt', 'a+')
                 f.write(str(values))
 
             for threshold, values in standard_voting_spectrum.items():
@@ -668,26 +665,26 @@ if __name__ == '__main__':
                 f.write(str(values))
 
             # Write for original results
-            f = open(f'{abs_file_path}/OG/og_balanced_accuracy.txt', 'a+')
+            f = open(f'{abs_file_path}/og_balanced_accuracy.txt', 'a+')
             f.write(str(og_balanced_accuracies))
 
-            f = open(f'{abs_file_path}/OG/og_accuracy.txt', 'a+')
+            f = open(f'{abs_file_path}/og_accuracy.txt', 'a+')
             f.write(str(og_accuracies))
 
-            f = open(f'{abs_file_path}/OG/og_recall.txt', 'a+')
+            f = open(f'{abs_file_path}/og_recall.txt', 'a+')
             f.write(str(og_recalls))
 
-            f = open(f'{abs_file_path}/OG/og_precision.txt', 'a+')
+            f = open(f'{abs_file_path}/og_precision.txt', 'a+')
             f.write(str(og_precisions))
 
-            f = open(f'{abs_file_path}/OG/og_f1.txt', 'a+')
+            f = open(f'{abs_file_path}/og_f1.txt', 'a+')
             f.write(str(og_f1s))
 
-            f = open(f'{abs_file_path}/OG/og_ged.txt', 'a+')
+            f = open(f'{abs_file_path}/og_ged.txt', 'a+')
             f.write(str(og_ged))
 
-            f = open(f'{abs_file_path}/OG/og_spectrum.txt', 'a+')
+            f = open(f'{abs_file_path}/og_spectrum.txt', 'a+')
             f.write(str(og_spectrum))
 
-            f = open(f'{abs_file_path}/OG/og_spectrum_diff.txt', 'a+')
+            f = open(f'{abs_file_path}/og_spectrum_diff.txt', 'a+')
             f.write(str(og_spectrum_diff))
