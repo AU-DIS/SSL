@@ -1,4 +1,9 @@
 name: run experiments_ssl.py
+on:
+  push: 
+    branches:
+      - master
+
 jobs:
   exp1:
     runs-on: ubuntu-latest
@@ -23,7 +28,7 @@ jobs:
           pip install -r requirements.txt
       
       - name: execute experiments 10 to 20 with 10 percent # run experiments with percentage 1 and 4 
-        run: python experiments_ssl.py powerlaw_200_50_50 1 2 0.1
+        run: python experiments_ssl.py malaria 1 2 0.1 0.10
 
       - name: commit files
         run: |
@@ -67,7 +72,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py powerlaw_200_50_50 2 3 0.1
+        run: python experiments_ssl.py malaria 1 2 0.1 0.20
 
       - name: commit files
         run: |
@@ -111,7 +116,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70
-        run: python experiments_ssl.py powerlaw_200_50_50 3 4 0.1
+        run: python experiments_ssl.py malaria 1 2 0.1 0.30
 
       - name: commit files
         run: |
@@ -155,7 +160,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py powerlaw_200_50_50 3 4 0.1
+        run: python experiments_ssl.py malaria 1 2 0.1 0.40
 
       - name: commit files
         run: |
@@ -198,7 +203,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 4 5 0.1
+        run: python experiments_ssl.py malaria 1 2 0.1 0.50
 
       - name: commit files
         run: |
@@ -241,7 +246,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 5 6 0.1
+        run: python experiments_ssl.py malaria 1 2 0.1 0.60
 
       - name: commit files
         run: |
@@ -284,7 +289,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 7 8 0.1
+        run: python experiments_ssl.py malaria 1 2 0.1 0.47
 
       - name: commit files
         run: |
@@ -327,7 +332,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 8 9 0.1
+        run: python experiments_ssl.py malaria 1 2 0.1 0.80
 
       - name: commit files
         run: |
@@ -370,7 +375,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 9 10 0.1
+        run: python experiments_ssl.py malaria 1 2 0.1 0.90
 
       - name: commit files
         run: |
@@ -413,7 +418,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 10 11 0.1
+        run: python experiments_ssl.py malaria 1 2 0.2 0.10
 
       - name: commit files
         run: |
@@ -457,7 +462,7 @@ jobs:
           pip install -r requirements.txt
       
       - name: execute experiments 10 to 20 with 10 percent # run experiments with percentage 1 and 4 
-        run: python experiments_ssl.py powerlaw_200_50_50 1 2 0.2
+        run: python experiments_ssl.py malaria 1 2 0.2 0.20
 
       - name: commit files
         run: |
@@ -501,7 +506,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py powerlaw_200_50_50 2 3 0.2
+        run: python experiments_ssl.py malaria 1 2 0.2 0.30
 
       - name: commit files
         run: |
@@ -545,7 +550,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70
-        run: python experiments_ssl.py powerlaw_200_50_50 3 4 0.2
+        run: python experiments_ssl.py malaria 1 2 0.2 0.40
 
       - name: commit files
         run: |
@@ -589,7 +594,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py powerlaw_200_50_50 3 4 0.2
+        run: python experiments_ssl.py malaria 1 2 0.2 0.50
 
       - name: commit files
         run: |
@@ -632,7 +637,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 4 5 0.2
+        run: python experiments_ssl.py malaria 1 2 0.2 0.60
 
       - name: commit files
         run: |
@@ -675,7 +680,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 5 6 0.2
+        run: python experiments_ssl.py malaria 1 2 0.2 0.70
 
       - name: commit files
         run: |
@@ -718,7 +723,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 7 8 0.2
+        run: python experiments_ssl.py malaria 1 2 0.2 0.80
 
       - name: commit files
         run: |
@@ -761,7 +766,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 8 9 0.2
+        run: python experiments_ssl.py malaria 1 2 0.2 0.90
 
       - name: commit files
         run: |
@@ -804,7 +809,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 9 10 0.2
+        run: python experiments_ssl.py malaria 1 2 0.3 0.10
 
       - name: commit files
         run: |
@@ -847,7 +852,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 10 11 0.2
+        run: python experiments_ssl.py malaria 1 2 0.3 0.20
 
       - name: commit files
         run: |
@@ -891,7 +896,7 @@ jobs:
           pip install -r requirements.txt
       
       - name: execute experiments 10 to 20 with 10 percent # run experiments with percentage 1 and 4 
-        run: python experiments_ssl.py powerlaw_200_50_50 1 2 0.3
+        run: python experiments_ssl.py malaria 1 2 0.3 0.30
 
       - name: commit files
         run: |
@@ -935,7 +940,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py powerlaw_200_50_50 2 3 0.3
+        run: python experiments_ssl.py malaria 1 2 0.3 0.40
 
       - name: commit files
         run: |
@@ -979,7 +984,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70
-        run: python experiments_ssl.py powerlaw_200_50_50 3 4 0.3
+        run: python experiments_ssl.py malaria 1 2 0.3 0.50
 
       - name: commit files
         run: |
@@ -1023,7 +1028,7 @@ jobs:
           pip install -r requirements.txt
           
       - name: execute experiments 40 to 70 # run experiments with percentage 4 and 8 
-        run: python experiments_ssl.py powerlaw_200_50_50 3 4 0.3
+        run: python experiments_ssl.py malaria 1 2 0.3 0.60
 
       - name: commit files
         run: |
@@ -1066,7 +1071,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 4 5 0.3
+        run: python experiments_ssl.py malaria 1 2 0.3 0.70
 
       - name: commit files
         run: |
@@ -1109,7 +1114,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 5 6 0.3
+        run: python experiments_ssl.py malaria 1 2 0.3 0.80
 
       - name: commit files
         run: |
@@ -1152,136 +1157,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 7 8 0.3
-
-      - name: commit files
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -A
-          git diff-index --quiet HEAD || (git commit -a -m "updated logs" --allow-empty)
-
-      - name: pull
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git pull origin master -f
-          
-      - name: push changes
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: master
-  exp38:
-    needs: [exp1,exp2, exp3, exp4, exp5,exp6, exp7, exp8, exp9, exp10, exp21, exp22, exp23,exp24, exp25, exp26, exp27, exp28, exp29, exp30,exp31, exp32,exp33, exp34, exp35, exp36, exp37]
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout repo content
-        uses: actions/checkout@v2 # checkout the repository content to github runner
-
-      - name: pull
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git pull origin master -f
-
-      - name: setup python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9' # install the python version needed
-          
-      - name: install python packages
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 8 9 0.3
-
-      - name: commit files
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -A
-          git diff-index --quiet HEAD || (git commit -a -m "updated logs" --allow-empty)
-
-      - name: pull
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git pull origin master -f
-          
-      - name: push changes
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: master
-  exp39:
-    needs: [exp1,exp2, exp3, exp4, exp5,exp6, exp7, exp8, exp9, exp10, exp21, exp22, exp23,exp24, exp25, exp26, exp27, exp28, exp29, exp30,exp31, exp32,exp33, exp34, exp35, exp36, exp37, exp38]
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout repo content
-        uses: actions/checkout@v2 # checkout the repository content to github runner
-
-      - name: pull
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git pull origin master -f
-
-      - name: setup python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9' # install the python version needed
-          
-      - name: install python packages
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 9 10 0.3
-
-      - name: commit files
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -A
-          git diff-index --quiet HEAD || (git commit -a -m "updated logs" --allow-empty)
-
-      - name: pull
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git pull origin master -f
-          
-      - name: push changes
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: master
-  exp40:
-    needs: [exp1,exp2, exp3, exp4, exp5,exp6, exp7, exp8, exp9, exp10, exp21, exp22, exp23,exp24, exp25, exp26, exp27, exp28, exp29, exp30,exp31, exp32,exp33, exp34, exp35, exp36, exp37, exp38,exp39]
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout repo content
-        uses: actions/checkout@v2 # checkout the repository content to github runner
-
-      - name: pull
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git pull origin master -f
-
-      - name: setup python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9' # install the python version needed
-          
-      - name: install python packages
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: execute experiments 80 to 100 # run experiments with percentage 8 and 11
-        run: python experiments_ssl.py powerlaw_200_50_50 10 11 0.3
+        run: python experiments_ssl.py malaria 1 2 0.3 0.90
 
       - name: commit files
         run: |
