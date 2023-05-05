@@ -53,14 +53,117 @@ def spectrum_abs_diff(X, Y):
     if len(Y) == 0:
         return math.inf
 
-    if len(Y) < len(X):
-        largest_eigenvalue = Y[-1]
-        eigenvalues_to_add = len(X) - len(Y)
-        extra_eigenvalues = torch.full((eigenvalues_to_add,), largest_eigenvalue)
-        Y = torch.cat((Y, extra_eigenvalues))
-
-    Y = Y[:len(X)]
+    eigenvalues_to_compare = min(len(X), len(Y)) # If 
+    Y = Y[:eigenvalues_to_compare]
+    X = X[:eigenvalues_to_compare]
     return torch.sum(torch.abs(torch.sub(X, Y))).item()
+
+def greedy_remove_node_by_spectrum(G, solution_vector, ref_spectrum):
+    solution_indices = [i for i, res in enumerate(solution_vector) if res == 0]
+    return greedy_remove_node_by_spectrum_aux(G, solution_indices, ref_spectrum)
+
+def greedy_remove_node_by_spectrum_aux(G, solution_indices, ref_spectrum):
+    if len(solution_indices) == len(ref_spectrum):
+        print("same length, we done")
+        return solution_indices
+
+    smallest_spectrum_diff = math.inf
+    best_idx_to_remove = None
+    for idx in solution_indices:
+        print("idx:", idx)
+        new_solution_indices = solution_indices.copy()
+        new_solution_indices.remove(idx)
+        new_solution = G.subgraph(new_solution_indices)
+        new_spectrum = spectrum_from_graph(new_solution)
+        print("length of new spectrum:", len(new_spectrum))
+        new_spectrum_diff = spectrum_abs_diff(ref_spectrum, new_spectrum)
+        if new_spectrum_diff < smallest_spectrum_diff:
+            print("updating spectrum diff, new one:", new_spectrum_diff)
+            smallest_spectrum_diff = new_spectrum_diff
+            best_idx_to_remove = idx
+
+    print("Best idx to remove:", best_idx_to_remove)
+    solution_indices.remove(best_idx_to_remove)
+    return greedy_remove_node_by_spectrum_aux(G, solution_indices, ref_spectrum)
+
+def greedy_add_node_by_spectrum_v2(G, solution_vector, ref_spectrum):
+    solution_indices = [i for i, res in enumerate(solution_vector) if res == 0]
+    remaining_indices = [i for i, res in enumerate(solution_vector) if res == 1]
+    return greedy_add_node_by_spectrum_v2_aux(G, solution_indices, remaining_indices, ref_spectrum)
+
+def greedy_add_node_by_spectrum_v2_aux(G, solution_indices, remaining_indices, ref_spectrum):
+    if len(solution_indices) == len(ref_spectrum):
+        print("same length, we done")
+        return solution_indices
+
+    smallest_spectrum_diff = math.inf
+    best_idx_to_add = None
+    for idx in remaining_indices:
+        new_solution_indices = solution_indices.copy()
+        new_solution_indices.append(idx)
+        new_solution = G.subgraph(new_solution_indices)
+        new_spectrum = spectrum_from_graph(new_solution)
+        new_spectrum_diff = spectrum_abs_diff(ref_spectrum, new_spectrum)
+        if new_spectrum_diff < smallest_spectrum_diff:
+            print("updating spectrum diff, new one:", new_spectrum_diff)
+            smallest_spectrum_diff = new_spectrum_diff
+            best_idx_to_add = idx
+
+    print("Best idx to add:", best_idx_to_add)
+    solution_indices.append(best_idx_to_add)
+    remaining_indices.remove(best_idx_to_add)
+    return greedy_add_node_by_spectrum_v2_aux(G, solution_indices, remaining_indices, ref_spectrum)
+
+# TODO clean up kode, så vi ikke har aux metoder, men at de pågældende metoder bare bliver kaldt herfra
+# TODO overvej at restricte greedy add nodes, så den kun overvejer nodes, der faktisk er blevet stemt på
+# TODO ændr hvordan vi sammenligner spektrum når |S| < |Q|, ifht hvad end Petros har skrevet
+def enforce_cardinality_constraint_by_spectrum(G, solution_vector, ref_spectrum):
+    solution_indices = [i for i, res in enumerate(solution_vector) if res == 0]
+
+    nodes_solution = len(solution_indices)
+    nodes_query = len(ref_spectrum)
+    if nodes_solution == nodes_query:
+        return solution_indices
+    elif nodes_solution < nodes_query:
+        remaining_indices = [i for i, res in enumerate(solution_vector) if res == 1]
+        return greedy_add_node_by_spectrum_v2_aux(G, solution_indices, remaining_indices, ref_spectrum)
+    else:
+        return greedy_remove_node_by_spectrum_aux(G, solution_indices, ref_spectrum)
+
+def test_greedy_remove(G, A, part_nodes, ref_spectrum):
+    n, _ = A.shape
+
+    part_nodes_altered = [node for node in part_nodes]
+
+    nodes_to_add = [42, 69, 80, 100]
+    print("Nodes added to query:", nodes_to_add)
+    part_nodes_altered.extend(nodes_to_add)
+    part_nodes_altered = np.array(part_nodes_altered)
+
+    n2 = len(part_nodes_altered)
+
+    A_sub = A[0:n2, 0:n2]
+    A_sub = A[:,part_nodes_altered]
+    A_sub = A_sub[part_nodes_altered,:]
+
+    Q_altered_solution_vector = [0 if idx in part_nodes_altered else 1 for idx in range(n)]
+
+    enforce_cardinality_constraint_by_spectrum(G, Q_altered_solution_vector, ref_spectrum)
+
+def test_greedy_add(G, A, part_nodes, ref_spectrum):
+    n, _ = A.shape
+
+    part_nodes_altered = [node for node in part_nodes[:-4]]
+
+    n2 = len(part_nodes_altered)
+
+    A_sub = A[0:n2, 0:n2]
+    A_sub = A[:,part_nodes_altered]
+    A_sub = A_sub[part_nodes_altered,:]
+    Q_altered_solution_vector = [0 if idx in part_nodes_altered else 1 for idx in range(n)]
+
+    enforce_cardinality_constraint_by_spectrum(G, Q_altered_solution_vector, ref_spectrum)
+
 
 def test_spectrum_abs_diff():
     ref = torch.tensor([-1.874207407808E-15,	2.682128349763E-01,	9.692844069884E-01,	1.000000000000E+00,	1.888921131972E+00,	3.000000000000E+00,	3.239240861833E+00,	4.528519547368E+00,	4.584230646880E+00,	6.067163735274E+00,	6.972770944034E+00,	7.481655890675E+00])
@@ -105,7 +208,8 @@ def prune_graph(G, part_nodes):
     G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
 
 def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborhood_thresholds=[], edge_removal=0.3):
-    test_spectrum_abs_diff()
+    # TODO fix test?
+    # test_spectrum_abs_diff()
 
     print(f'Reading from {edgefile}')
     A1=edgelist_to_adjmatrix(edgefile)
@@ -176,6 +280,10 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
                  'train_E': False, #TODO...
                  'threshold_algo': '1dkmeans', # 'spectral', '1dkmeans', 'smallest'
                  }
+
+    # test_greedy_remove(G, A, part_nodes, ref_spectrum)
+    test_greedy_add(G, A, part_nodes, ref_spectrum)
+    raise Exception("I leave!")
 
 
     subgraph_isomorphism_solver = SubgraphIsomorphismSolver(A, ref_spectrum, problem_params, solver_params)
