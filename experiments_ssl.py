@@ -282,9 +282,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
                  }
 
     # test_greedy_remove(G, A, part_nodes, ref_spectrum)
-    test_greedy_add(G, A, part_nodes, ref_spectrum)
-    raise Exception("I leave!")
-
+    # test_greedy_add(G, A, part_nodes, ref_spectrum)
 
     subgraph_isomorphism_solver = SubgraphIsomorphismSolver(A, ref_spectrum, problem_params, solver_params)
     v, E = \
