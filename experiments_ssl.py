@@ -332,7 +332,6 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     # v_randomized, _ = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
     votes = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
 
-
     standard_voting_results = []
     standard_voting_results_with_cardinality_constraint = []
     for threshold in standard_voting_thresholds:
@@ -491,7 +490,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
             }
 
     # Returning original accuracy
-    return standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum.tolist(), standard_voting_results_with_cardinality_constraint, neighborhood_results_with_cardinality_constraint
+    return standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum.tolist(), standard_voting_results_with_cardinality_constraint, neighborhood_results_with_cardinality_constraint, votes
 
 def count_nodes(v_binary):
     return len(v_binary) - np.count_nonzero(v_binary)
@@ -614,6 +613,7 @@ if __name__ == '__main__':
     neighborhood_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     conductances = []
     edge_removals = []
+    all_votes = []
 
     initial_dict_standard = {threshold: [] for threshold in standard_voting_thresholds}
     initial_dict_neighborhood = {threshold: [] for threshold in neighborhood_thresholds}
@@ -707,9 +707,10 @@ if __name__ == '__main__':
                 else:
                     if use_global_mu:
                         # acc, bal_acc, condac, recall_s, precision_s, f1_s =run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
-                        standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum, standard_voting_results_with_cardinality_constraint, neighborhood_results_with_cardinality_constraint = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
+                        standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum, standard_voting_results_with_cardinality_constraint, neighborhood_results_with_cardinality_constraint, votes = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
                         conductances.append(condac)
                         edge_removals.append(edge_removal)
+                        all_votes.append(votes)
                         f = open(f'{abs_file_path}/ref_spectrum.txt', 'a+')
                         f.write(str(ref_spectrum))
                         # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
@@ -763,9 +764,10 @@ if __name__ == '__main__':
                         og_spectrum_diff.append(og_results["spectrum_diff"])
 
                     else:
-                        standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum, standard_voting_results_with_cardinality_constraint, neighborhood_results_with_cardinality_constraint = run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds)
+                        standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum, standard_voting_results_with_cardinality_constraint, neighborhood_results_with_cardinality_constraint, votes = run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds)
                         conductances.append(condac)
                         edge_removals.append(edge_removal)
+                        all_votes.append(votes)
                         # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
                         for result in standard_voting_results:
                             threshold = result["threshold"]
@@ -801,6 +803,9 @@ if __name__ == '__main__':
 
             f = open(f'{abs_file_path}/edge_removal.txt', 'a+')
             f.write(str(edge_removals))
+
+            f = open(f'{abs_file_path}/votes', 'a+')
+            f.write(str(all_votes))
 
             # Writing data for standard voting
             for threshold, values in standard_voting_balanced_accuracies.items():
