@@ -67,7 +67,15 @@ def plot_correlation(graph, per):
     p = np.poly1d(z)
 
     plt.plot(x_values, p(x_values),"--k")
-
+    plt.xlabel('balanced accuracy')
+    plt.ylabel('spectral diff')
+    myalg = algorithm
+    print(myalg)
+    if myalg == '':
+        myalg = 'voting'
+    else:
+        myalg = 'neighborhood'
+    plt.title(f"Correlation graph for {graph} with V/VQ = {per} and with {myalg}")
     plt.show()
 
     return
