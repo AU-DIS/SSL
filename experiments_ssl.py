@@ -711,7 +711,7 @@ if __name__ == '__main__':
                 else:
                     if use_global_mu:
                         # acc, bal_acc, condac, recall_s, precision_s, f1_s =run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
-                        standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum, standard_voting_results_with_cardinality_constraint, neighborhood_results_with_cardinality_constraint, votes, v_gt = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
+                        standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum, standard_voting_results_with_cardinality_constraint, neighborhood_results_with_cardinality_constraint, votes, v_gt = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds, edge_removal)
                         conductances.append(condac)
                         edge_removals.append(edge_removal)
                         all_votes.append(votes)
@@ -769,7 +769,7 @@ if __name__ == '__main__':
                         og_spectrum_diff.append(og_results["spectrum_diff"])
 
                     else:
-                        standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum, standard_voting_results_with_cardinality_constraint, neighborhood_results_with_cardinality_constraint, votes, v_gt = run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds)
+                        standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum, standard_voting_results_with_cardinality_constraint, neighborhood_results_with_cardinality_constraint, votes, v_gt = run_opt(edgefile,query_nodes, best_mu[per][lr], standard_voting_thresholds, neighborhood_thresholds, edge_removal)
                         conductances.append(condac)
                         edge_removals.append(edge_removal)
                         all_votes.append(votes)
