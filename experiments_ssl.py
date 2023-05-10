@@ -135,7 +135,7 @@ def test_greedy_remove(G, A, part_nodes, ref_spectrum):
     part_nodes_altered = [node for node in part_nodes]
 
     nodes_to_add = [42, 69, 80, 100]
-    print("Nodes added to query:", nodes_to_add)
+    # print("Nodes added to query:", nodes_to_add)
     part_nodes_altered.extend(nodes_to_add)
     part_nodes_altered = np.array(part_nodes_altered)
 
@@ -203,26 +203,26 @@ def prune_graph(G, part_nodes):
     sub_G = nx.subgraph(G, part_nodes)
     for degree_view in nx.degree(sub_G):
         lowest_degree = min(lowest_degree,degree_view[1])
-    print("removing edges:", list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
+    # print("removing edges:", list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
     G.remove_nodes_from(list(n for n in G.nodes if nx.degree(G,n)<lowest_degree))
 
 def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborhood_thresholds=[], edge_removal=0.3):
     # TODO fix test?
     # test_spectrum_abs_diff()
 
-    print(f'Reading from {edgefile}')
+    # print(f'Reading from {edgefile}')
     A1=edgelist_to_adjmatrix(edgefile)
     G=nx.from_numpy_matrix(A1)
     A = torch.tensor(nx.to_numpy_matrix(G))
 
     n1 = len(part_nodes)
     n = len(G.nodes)
-    print(f"|Vq| = {n1}")
-    print(f"|V| = {n}")
-    print(f"|Vq|/|V| = {n1/n}")
+    # print(f"|Vq| = {n1}")
+    # print(f"|V| = {n}")
+    # print(f"|Vq|/|V| = {n1/n}")
     
     condac = nx.conductance(G, part_nodes)
-    print(f"Conductance equals to {condac}")
+    # print(f"Conductance equals to {condac}")
 
     # prune_graph(G, part_nodes) # TODO gør noget med G, lav A ud fra G? Vær opmærksom på om originale indices stadig passer...
 
@@ -319,14 +319,14 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     # og_ged = use_graph_edit_distance_generator(og_ged_generator, "OG")
     og_spectrum = spectrum_from_graph(S)
     og_spectrum_diff = spectrum_abs_diff(ref_spectrum, og_spectrum)
-    print("Og diff:", og_spectrum_diff)
-    print("Og balanced acc:", original_balanced)
-    print("Og f1:", og_fscore)
+    # print("Og diff:", og_spectrum_diff)
+    # print("Og balanced acc:", original_balanced)
+    # print("Og f1:", og_fscore)
 
     nodes_in_solution = count_nodes(v_binary)
-    print("Nodes in solution:", nodes_in_solution)
+    # print("Nodes in solution:", nodes_in_solution)
 
-    experiments_to_make = 2
+    experiments_to_make = 30
 
     random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make=experiments_to_make, edge_removal=edge_removal) # Faked original balanced accuracy, can probably delete anyway
     # v_randomized, _ = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
@@ -346,16 +346,16 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         # v_ged_generator = graph_edit_distance(Q, S)
         # v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Standard with threshold: {threshold}')
 
-        print(f'Standard voting with threshold: {threshold}')
+        # print(f'Standard voting with threshold: {threshold}')
         v_spectrum = spectrum_from_graph(S)
         v_spectrum_diff = spectrum_abs_diff(ref_spectrum, v_spectrum)
 
-        print("v diff:", v_spectrum_diff)
-        print("v balanced:", v_balanced_accuracy)
-        print("v fscore:", v_fscore)
+        # print("v diff:", v_spectrum_diff)
+        # print("v balanced:", v_balanced_accuracy)
+        # print("v fscore:", v_fscore)
 
         nodes_in_solution = count_nodes(v)
-        print("Nodes in solution:", nodes_in_solution)
+        # print("Nodes in solution:", nodes_in_solution)
 
         standard_voting_results.append({
                 "threshold": threshold,
@@ -370,7 +370,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
             })
 
         # Do the same with cardinality constraint enforced!
-        print("enforcing cardinality constraint")
+        # print("enforcing cardinality constraint")
         v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
         v_accuracy = accur(v_gt, v)
         v_balanced_accuracy = balanced_acc(v_gt, v)
@@ -382,16 +382,16 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         # v_ged_generator = graph_edit_distance(Q, S)
         # v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Standard with threshold: {threshold}')
 
-        print(f'Standard voting with threshold: {threshold} AND cardinality constraint enforced')
+        # print(f'Standard voting with threshold: {threshold} AND cardinality constraint enforced')
         v_spectrum = spectrum_from_graph(S)
         v_spectrum_diff = spectrum_abs_diff(ref_spectrum, v_spectrum)
 
-        print("v diff:", v_spectrum_diff)
-        print("v balanced:", v_balanced_accuracy)
-        print("v fscore:", v_fscore)
+        # print("v diff:", v_spectrum_diff)
+        # print("v balanced:", v_balanced_accuracy)
+        # print("v fscore:", v_fscore)
 
         nodes_in_solution = count_nodes(v)
-        print("Nodes in solution:", nodes_in_solution)
+        # print("Nodes in solution:", nodes_in_solution)
 
         standard_voting_results_with_cardinality_constraint.append({
                 "threshold": threshold,
@@ -420,15 +420,15 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
         # v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Neighborhood with threshold: {threshold}')
 
         v_spectrum = spectrum_from_graph(S)
-        print(f'Neighborhood with threshold: {threshold}')
+        # print(f'Neighborhood with threshold: {threshold}')
         v_spectrum_diff = spectrum_abs_diff(ref_spectrum, v_spectrum)
 
-        print("v diff:", v_spectrum_diff)
-        print("v balanced:", v_balanced_accuracy)
-        print("v fscore:", v_fscore)
+        # print("v diff:", v_spectrum_diff)
+        # print("v balanced:", v_balanced_accuracy)
+        # print("v fscore:", v_fscore)
 
         nodes_in_solution = count_nodes(v)
-        print("Nodes in solution:", nodes_in_solution)
+        # print("Nodes in solution:", nodes_in_solution)
 
         neighborhood_results.append({
                 "threshold": threshold,
@@ -443,7 +443,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
             })
 
         # Now doing the same for neighborhood with cardinality constraint!
-        print("enforcing cardinality constraint")
+        # print("enforcing cardinality constraint")
         v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
         v_accuracy = accur(v_gt, v)
         v_balanced_accuracy = balanced_acc(v_gt, v)
@@ -496,20 +496,20 @@ def count_nodes(v_binary):
     return len(v_binary) - np.count_nonzero(v_binary)
 
 def find_best_mu(edgefile,part_nodes):
-    print(f'Reading from {edgefile}')
+    # print(f'Reading from {edgefile}')
     A1=edgelist_to_adjmatrix(edgefile)
     G=nx.from_numpy_matrix(A1)
     A = torch.tensor(nx.to_numpy_matrix(G))
 
     n1 = len(part_nodes)
     n = len(G.nodes)
-    print(f"|Vq| = {n1}")
-    print(f"|V| = {n}")
-    print(f"|Vq|/|V| = {n1/n}")
+    # print(f"|Vq| = {n1}")
+    # print(f"|V| = {n}")
+    # print(f"|Vq|/|V| = {n1/n}")
     
     condac = nx.conductance(G, part_nodes)
-    print(f"Conductance equals to {condac}")
-    print(f'query nodes {part_nodes}')
+    # print(f"Conductance equals to {condac}")
+    # print(f'query nodes {part_nodes}')
     color_map=[]
     for node in G:
         if node in part_nodes:
@@ -592,9 +592,9 @@ def find_best_mu(edgefile,part_nodes):
             counter = 0
         else:
             counter += 1
-        print("Searching for the best balance accuracy...")
-        print(f"Current Balanced Accuracy for {mu_MS} is {ba_current}")
-        print(f"Best Balanced Accuracy is for {best_mu}, equal to {best_ba}")
+        # print("Searching for the best balance accuracy...")
+        # print(f"Current Balanced Accuracy for {mu_MS} is {ba_current}")
+        # print(f"Best Balanced Accuracy is for {best_mu}, equal to {best_ba}")
         if((counter>10) or (best_ba==1.0)): break
     return best_mu
 
@@ -672,10 +672,7 @@ if __name__ == '__main__':
     graphs = []
     use_global_mu = True
     for graph_name in graph_names:
-        script_dir = os.path.dirname(__file__)
-        rel_path = f'experiments_edge_removal/{graph_name}/{per}/{percentage_lower_bound}'
-        Path(rel_path).mkdir(parents=True, exist_ok=True)
-        abs_file_path = os.path.join(script_dir, rel_path)
+        
         res_dict={}
         res_dict[graph_name] = {}
         best_mu = {}
@@ -690,18 +687,24 @@ if __name__ == '__main__':
                 best_mu[per] = {}
             res_dict[graph_name][int(per*100)] = {}
             for lr in clcr:   
+                if (int(lr*10) % 2 != 0):
+                    continue
+                script_dir = os.path.dirname(__file__)
+                rel_path = f'experiments_final/{graph_name}/{per}/{lr*100}'
+                Path(rel_path).mkdir(parents=True, exist_ok=True)
+                abs_file_path = os.path.join(script_dir, rel_path)
                 if folder_no == 0: 
                     best_mu[per][lr] = 0
                 ext = str(int(per*100))
                 part_file = './data/'+graph_name+'/'+str(int(per*100))+'/'+str(folder_no)+'/'+graph_name+'_'+ext+'_nodes.txt'
-                print(f'Reading subgraph from {part_file}')
+                # print(f'Reading subgraph from {part_file}')
                 query_nodes=np.loadtxt(part_file)
-                print(query_nodes)
+                # print(query_nodes)
                 #print(part_nodes)
                 ext = str(int(per*100))+"_"+str(int(lr*100))
                 edgefile = './data/'+graph_name+'/'+str(int(per*100))+'/'+str(folder_no)+'/'+graph_name+'_'+ext+'.txt'
                 if folder_no == 0:
-                    print('**** Looking for the best m ****')
+                    # print('**** Looking for the best m ****')
                     best_mu[per][lr] = find_best_mu(edgefile, query_nodes)
                     best_m_par += best_mu[per][lr]
                     counter_m_par += 1
@@ -796,176 +799,176 @@ if __name__ == '__main__':
                         # og_ged.append(og_results["graph_edit_distance"])
 
                        # Write results for standard voting 
-            rel_path = f'experiments_edge_removal/{graph_name}/{per}/{percentage_lower_bound}'
-            Path(rel_path).mkdir(parents=True, exist_ok=True)
-            script_dir = os.path.dirname(__file__)
-            abs_file_path = os.path.join(script_dir, rel_path)
-            
-            f = open(f'{abs_file_path}/conductance.txt', 'a+')
-            f.write(str(conductances))
+                rel_path = f'experiments_final/{graph_name}/{per}/{lr*100}'
+                Path(rel_path).mkdir(parents=True, exist_ok=True)
+                script_dir = os.path.dirname(__file__)
+                abs_file_path = os.path.join(script_dir, rel_path)
+                
+                f = open(f'{abs_file_path}/conductance.txt', 'a+')
+                f.write(str(conductances))
 
-            f = open(f'{abs_file_path}/edge_removal.txt', 'a+')
-            f.write(str(edge_removals))
+                f = open(f'{abs_file_path}/edge_removal.txt', 'a+')
+                f.write(str(edge_removals))
 
-            f = open(f'{abs_file_path}/votes', 'a+')
-            f.write(str(all_votes))
+                f = open(f'{abs_file_path}/votes', 'a+')
+                f.write(str(all_votes))
 
-            f = open(f'{abs_file_path}/ground_truth', 'a+')
-            f.write(str(ground_truth))
+                f = open(f'{abs_file_path}/ground_truth', 'a+')
+                f.write(str(ground_truth))
 
-            # Writing data for standard voting
-            for threshold, values in standard_voting_balanced_accuracies.items():
-                f = open(f'{abs_file_path}/balanced_accuracy_{threshold}.txt', 'a+')
-                f.write(str(values))
+                # Writing data for standard voting
+                for threshold, values in standard_voting_balanced_accuracies.items():
+                    f = open(f'{abs_file_path}/balanced_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in standard_voting_accuracies.items():
-                f = open(f'{abs_file_path}/accuracy_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in standard_voting_accuracies.items():
+                    f = open(f'{abs_file_path}/accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in standard_voting_recalls.items():
-                f = open(f'{abs_file_path}/recall_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in standard_voting_recalls.items():
+                    f = open(f'{abs_file_path}/recall_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in standard_voting_precisions.items():
-                f = open(f'{abs_file_path}/precision_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in standard_voting_precisions.items():
+                    f = open(f'{abs_file_path}/precision_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in standard_voting_f1s.items():
-                f = open(f'{abs_file_path}/f1_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in standard_voting_f1s.items():
+                    f = open(f'{abs_file_path}/f1_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in standard_voting_ged.items():
-                f = open(f'{abs_file_path}/ged_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in standard_voting_ged.items():
+                    f = open(f'{abs_file_path}/ged_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in standard_voting_spectrum.items():
-                f = open(f'{abs_file_path}/spectrum_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in standard_voting_spectrum.items():
+                    f = open(f'{abs_file_path}/spectrum_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in standard_voting_spectrum_diff.items():
-                f = open(f'{abs_file_path}/spectrum_diff_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in standard_voting_spectrum_diff.items():
+                    f = open(f'{abs_file_path}/spectrum_diff_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            # Writing data for standard voting with cardinality constraint
-            for threshold, values in cc_standard_voting_balanced_accuracies.items():
-                f = open(f'{abs_file_path}/cc_balanced_accuracy_{threshold}.txt', 'a+')
-                f.write(str(values))
+                # Writing data for standard voting with cardinality constraint
+                for threshold, values in cc_standard_voting_balanced_accuracies.items():
+                    f = open(f'{abs_file_path}/cc_balanced_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_standard_voting_accuracies.items():
-                f = open(f'{abs_file_path}/cc_accuracy_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_standard_voting_accuracies.items():
+                    f = open(f'{abs_file_path}/cc_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_standard_voting_recalls.items():
-                f = open(f'{abs_file_path}/cc_recall_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_standard_voting_recalls.items():
+                    f = open(f'{abs_file_path}/cc_recall_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_standard_voting_precisions.items():
-                f = open(f'{abs_file_path}/cc_precision_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_standard_voting_precisions.items():
+                    f = open(f'{abs_file_path}/cc_precision_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_standard_voting_f1s.items():
-                f = open(f'{abs_file_path}/cc_f1_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_standard_voting_f1s.items():
+                    f = open(f'{abs_file_path}/cc_f1_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_standard_voting_ged.items():
-                f = open(f'{abs_file_path}/cc_ged_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_standard_voting_ged.items():
+                    f = open(f'{abs_file_path}/cc_ged_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_standard_voting_spectrum.items():
-                f = open(f'{abs_file_path}/cc_spectrum_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_standard_voting_spectrum.items():
+                    f = open(f'{abs_file_path}/cc_spectrum_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_standard_voting_spectrum_diff.items():
-                f = open(f'{abs_file_path}/cc_spectrum_diff_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_standard_voting_spectrum_diff.items():
+                    f = open(f'{abs_file_path}/cc_spectrum_diff_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            # Write results for neighborhood
-            for threshold, values in neighborhood_balanced_accuracies.items():
-                f = open(f'{abs_file_path}/n_balanced_accuracy_{threshold}.txt', 'a+')
-                f.write(str(values))
+                # Write results for neighborhood
+                for threshold, values in neighborhood_balanced_accuracies.items():
+                    f = open(f'{abs_file_path}/n_balanced_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in neighborhood_accuracies.items():
-                f = open(f'{abs_file_path}/n_accuracy_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in neighborhood_accuracies.items():
+                    f = open(f'{abs_file_path}/n_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in neighborhood_recalls.items():
-                f = open(f'{abs_file_path}/n_recall_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in neighborhood_recalls.items():
+                    f = open(f'{abs_file_path}/n_recall_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in neighborhood_precisions.items():
-                f = open(f'{abs_file_path}/n_precision_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in neighborhood_precisions.items():
+                    f = open(f'{abs_file_path}/n_precision_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in neighborhood_f1s.items():
-                f = open(f'{abs_file_path}/n_f1_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in neighborhood_f1s.items():
+                    f = open(f'{abs_file_path}/n_f1_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in neighborhood_ged.items():
-                f = open(f'{abs_file_path}/n_ged_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in neighborhood_ged.items():
+                    f = open(f'{abs_file_path}/n_ged_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in neighborhood_spectrum.items():
-                f = open(f'{abs_file_path}/n_spectrum_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in neighborhood_spectrum.items():
+                    f = open(f'{abs_file_path}/n_spectrum_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in neighborhood_spectrum_diff.items():
-                f = open(f'{abs_file_path}/n_spectrum_diff_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in neighborhood_spectrum_diff.items():
+                    f = open(f'{abs_file_path}/n_spectrum_diff_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            # Write results for neighborhood with cardinality constraint
-            for threshold, values in cc_neighborhood_balanced_accuracies.items():
-                f = open(f'{abs_file_path}/cc_n_balanced_accuracy_{threshold}.txt', 'a+')
-                f.write(str(values))
+                # Write results for neighborhood with cardinality constraint
+                for threshold, values in cc_neighborhood_balanced_accuracies.items():
+                    f = open(f'{abs_file_path}/cc_n_balanced_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_neighborhood_accuracies.items():
-                f = open(f'{abs_file_path}/cc_n_accuracy_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_neighborhood_accuracies.items():
+                    f = open(f'{abs_file_path}/cc_n_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_neighborhood_recalls.items():
-                f = open(f'{abs_file_path}/cc_n_recall_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_neighborhood_recalls.items():
+                    f = open(f'{abs_file_path}/cc_n_recall_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_neighborhood_precisions.items():
-                f = open(f'{abs_file_path}/cc_n_precision_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_neighborhood_precisions.items():
+                    f = open(f'{abs_file_path}/cc_n_precision_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_neighborhood_f1s.items():
-                f = open(f'{abs_file_path}/cc_n_f1_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_neighborhood_f1s.items():
+                    f = open(f'{abs_file_path}/cc_n_f1_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_neighborhood_ged.items():
-                f = open(f'{abs_file_path}/cc_n_ged_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_neighborhood_ged.items():
+                    f = open(f'{abs_file_path}/cc_n_ged_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_neighborhood_spectrum.items():
-                f = open(f'{abs_file_path}/cc_n_spectrum_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_neighborhood_spectrum.items():
+                    f = open(f'{abs_file_path}/cc_n_spectrum_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            for threshold, values in cc_neighborhood_spectrum_diff.items():
-                f = open(f'{abs_file_path}/cc_n_spectrum_diff_{threshold}.txt', 'a+')
-                f.write(str(values))
+                for threshold, values in cc_neighborhood_spectrum_diff.items():
+                    f = open(f'{abs_file_path}/cc_n_spectrum_diff_{threshold}.txt', 'a+')
+                    f.write(str(values))
 
-            # Write for original results
-            f = open(f'{abs_file_path}/og_balanced_accuracy.txt', 'a+')
-            f.write(str(og_balanced_accuracies))
+                # Write for original results
+                f = open(f'{abs_file_path}/og_balanced_accuracy.txt', 'a+')
+                f.write(str(og_balanced_accuracies))
 
-            f = open(f'{abs_file_path}/og_accuracy.txt', 'a+')
-            f.write(str(og_accuracies))
+                f = open(f'{abs_file_path}/og_accuracy.txt', 'a+')
+                f.write(str(og_accuracies))
 
-            f = open(f'{abs_file_path}/og_recall.txt', 'a+')
-            f.write(str(og_recalls))
+                f = open(f'{abs_file_path}/og_recall.txt', 'a+')
+                f.write(str(og_recalls))
 
-            f = open(f'{abs_file_path}/og_precision.txt', 'a+')
-            f.write(str(og_precisions))
+                f = open(f'{abs_file_path}/og_precision.txt', 'a+')
+                f.write(str(og_precisions))
 
-            f = open(f'{abs_file_path}/og_f1.txt', 'a+')
-            f.write(str(og_f1s))
+                f = open(f'{abs_file_path}/og_f1.txt', 'a+')
+                f.write(str(og_f1s))
 
-            f = open(f'{abs_file_path}/og_ged.txt', 'a+')
-            f.write(str(og_ged))
+                f = open(f'{abs_file_path}/og_ged.txt', 'a+')
+                f.write(str(og_ged))
 
-            f = open(f'{abs_file_path}/og_spectrum.txt', 'a+')
-            f.write(str(og_spectrum))
+                f = open(f'{abs_file_path}/og_spectrum.txt', 'a+')
+                f.write(str(og_spectrum))
 
-            f = open(f'{abs_file_path}/og_spectrum_diff.txt', 'a+')
-            f.write(str(og_spectrum_diff))
+                f = open(f'{abs_file_path}/og_spectrum_diff.txt', 'a+')
+                f.write(str(og_spectrum_diff))
