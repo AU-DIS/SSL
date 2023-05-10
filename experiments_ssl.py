@@ -43,11 +43,14 @@ def use_graph_edit_distance_generator(generator_object, description=None):
     if description is None:
         description = ""
 
+    distance = None
     for distance in generator_object:
         num_iterations += 1
         print(distance, description)
         if num_iterations == 3:
-            return distance
+            break
+    
+    return distance
 
 def solution_graph(G, solution_vector):
     _G = G.copy()
