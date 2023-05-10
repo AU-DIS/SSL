@@ -35,6 +35,20 @@ def prec_recall_fscore(y_true, y_pred):
     prec, recall, fscore, _ = precision_recall_fscore_support(y_true, y_pred)
     return prec, recall, fscore
 
+def graph_edit_distance(y_true, y_pred):
+    return nx.optimize_graph_edit_distance(y_true, y_pred)
+
+def use_graph_edit_distance_generator(generator_object, description=None):
+    num_iterations = 0
+    if description is None:
+        description = ""
+
+    for distance in generator_object:
+        num_iterations += 1
+        print(distance, description)
+        if num_iterations == 3:
+            return distance
+
 def solution_graph(G, solution_vector):
     _G = G.copy()
     solution_indices = [i for i, res in enumerate(solution_vector) if res == 0]
