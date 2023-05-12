@@ -611,64 +611,11 @@ if __name__ == '__main__':
 
     standard_voting_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     neighborhood_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
-    conductances = []
-    edge_removals = []
-    all_votes = []
-    ground_truth = []
 
     initial_dict_standard = {threshold: [] for threshold in standard_voting_thresholds}
     initial_dict_neighborhood = {threshold: [] for threshold in neighborhood_thresholds}
 
-    # Create dictionaries for standard voting
-    standard_voting_balanced_accuracies = deepcopy(initial_dict_standard)
-    standard_voting_accuracies = deepcopy(initial_dict_standard)
-    standard_voting_recalls = deepcopy(initial_dict_standard)
-    standard_voting_precisions = deepcopy(initial_dict_standard)
-    standard_voting_f1s = deepcopy(initial_dict_standard)
-    standard_voting_ged = deepcopy(initial_dict_standard)
-    standard_voting_spectrum = deepcopy(initial_dict_standard)
-    standard_voting_spectrum_diff = deepcopy(initial_dict_standard)
-
-    # Create dictionaries for standard voting
-    cc_standard_voting_balanced_accuracies = deepcopy(initial_dict_standard)
-    cc_standard_voting_accuracies = deepcopy(initial_dict_standard)
-    cc_standard_voting_recalls = deepcopy(initial_dict_standard)
-    cc_standard_voting_precisions = deepcopy(initial_dict_standard)
-    cc_standard_voting_f1s = deepcopy(initial_dict_standard)
-    cc_standard_voting_ged = deepcopy(initial_dict_standard)
-    cc_standard_voting_spectrum = deepcopy(initial_dict_standard)
-    cc_standard_voting_spectrum_diff = deepcopy(initial_dict_standard)
-
-    # Create dictionaries for neighborhood
-    neighborhood_balanced_accuracies = deepcopy(initial_dict_neighborhood)
-    neighborhood_accuracies = deepcopy(initial_dict_neighborhood)
-    neighborhood_recalls = deepcopy(initial_dict_neighborhood)   
-    neighborhood_precisions = deepcopy(initial_dict_neighborhood)
-    neighborhood_f1s = deepcopy(initial_dict_neighborhood)
-    neighborhood_ged = deepcopy(initial_dict_neighborhood)
-    neighborhood_spectrum = deepcopy(initial_dict_neighborhood)
-    neighborhood_spectrum_diff = deepcopy(initial_dict_neighborhood)
-
-    # Create dictionaries for neighborhood
-    cc_neighborhood_balanced_accuracies = deepcopy(initial_dict_neighborhood)
-    cc_neighborhood_accuracies = deepcopy(initial_dict_neighborhood)
-    cc_neighborhood_recalls = deepcopy(initial_dict_neighborhood)   
-    cc_neighborhood_precisions = deepcopy(initial_dict_neighborhood)
-    cc_neighborhood_f1s = deepcopy(initial_dict_neighborhood)
-    cc_neighborhood_ged = deepcopy(initial_dict_neighborhood)
-    cc_neighborhood_spectrum = deepcopy(initial_dict_neighborhood)
-    cc_neighborhood_spectrum_diff = deepcopy(initial_dict_neighborhood)
-
-    # Lists for original results
-    og_balanced_accuracies = []
-    og_accuracies = []
-    og_recalls = []
-    og_precisions = []
-    og_f1s = []
-    og_ged = []
-    og_spectrum = []
-    og_spectrum_diff = []
-
+    graphs = []
     use_global_mu = True
     for graph_name in graph_names:
         
@@ -686,8 +633,62 @@ if __name__ == '__main__':
                 best_mu[per] = {}
             res_dict[graph_name][int(per*100)] = {}
             for lr in clcr:   
-                if (int(lr*10) % 2 != 0):
-                    continue
+                
+                # Create dictionaries for standard voting
+                standard_voting_balanced_accuracies = deepcopy(initial_dict_standard)
+                standard_voting_accuracies = deepcopy(initial_dict_standard)
+                standard_voting_recalls = deepcopy(initial_dict_standard)
+                standard_voting_precisions = deepcopy(initial_dict_standard)
+                standard_voting_f1s = deepcopy(initial_dict_standard)
+                standard_voting_ged = deepcopy(initial_dict_standard)
+                standard_voting_spectrum = deepcopy(initial_dict_standard)
+                standard_voting_spectrum_diff = deepcopy(initial_dict_standard)
+
+                # Create dictionaries for standard voting
+                cc_standard_voting_balanced_accuracies = deepcopy(initial_dict_standard)
+                cc_standard_voting_accuracies = deepcopy(initial_dict_standard)
+                cc_standard_voting_recalls = deepcopy(initial_dict_standard)
+                cc_standard_voting_precisions = deepcopy(initial_dict_standard)
+                cc_standard_voting_f1s = deepcopy(initial_dict_standard)
+                cc_standard_voting_ged = deepcopy(initial_dict_standard)
+                cc_standard_voting_spectrum = deepcopy(initial_dict_standard)
+                cc_standard_voting_spectrum_diff = deepcopy(initial_dict_standard)
+
+                # Create dictionaries for neighborhood
+                neighborhood_balanced_accuracies = deepcopy(initial_dict_neighborhood)
+                neighborhood_accuracies = deepcopy(initial_dict_neighborhood)
+                neighborhood_recalls = deepcopy(initial_dict_neighborhood)   
+                neighborhood_precisions = deepcopy(initial_dict_neighborhood)
+                neighborhood_f1s = deepcopy(initial_dict_neighborhood)
+                neighborhood_ged = deepcopy(initial_dict_neighborhood)
+                neighborhood_spectrum = deepcopy(initial_dict_neighborhood)
+                neighborhood_spectrum_diff = deepcopy(initial_dict_neighborhood)
+
+                # Create dictionaries for neighborhood
+                cc_neighborhood_balanced_accuracies = deepcopy(initial_dict_neighborhood)
+                cc_neighborhood_accuracies = deepcopy(initial_dict_neighborhood)
+                cc_neighborhood_recalls = deepcopy(initial_dict_neighborhood)   
+                cc_neighborhood_precisions = deepcopy(initial_dict_neighborhood)
+                cc_neighborhood_f1s = deepcopy(initial_dict_neighborhood)
+                cc_neighborhood_ged = deepcopy(initial_dict_neighborhood)
+                cc_neighborhood_spectrum = deepcopy(initial_dict_neighborhood)
+                cc_neighborhood_spectrum_diff = deepcopy(initial_dict_neighborhood)
+
+                # Lists for original results
+                og_balanced_accuracies = []
+                og_accuracies = []
+                og_recalls = []
+                og_precisions = []
+                og_f1s = []
+                og_ged = []
+                og_spectrum = []
+                og_spectrum_diff = []
+
+                conductances = []
+                edge_removals = []
+                all_votes = []
+                ground_truth = []
+
                 script_dir = os.path.dirname(__file__)
                 rel_path = f'experiments_final/{graph_name}/{per}/{lr*100}'
                 Path(rel_path).mkdir(parents=True, exist_ok=True)
