@@ -669,7 +669,6 @@ if __name__ == '__main__':
     og_spectrum = []
     og_spectrum_diff = []
 
-    graphs = []
     use_global_mu = True
     for graph_name in graph_names:
         
