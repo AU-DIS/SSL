@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 graph = 'football'
 per = '0.1'
-threshold = '0.3'
+threshold = '0.2'
 edge_removal = 3
 
 if len(sys.argv) >= 2:
@@ -15,7 +15,7 @@ if len(sys.argv) >= 3:
 if len(sys.argv) >= 4:
     threshold = sys.argv[3]
 if len(sys.argv) >= 5:
-    edge_removal = int(sys.argv[4][2])
+    edge_removal = int(sys.argv[4])
 
 if __name__ == '__main__':
     rootdir = f'experiments_final/{graph}/{per}'
@@ -109,6 +109,6 @@ if __name__ == '__main__':
     plt.plot(conductance_list, lowest_spectrum_balanced_accuracy_list, marker='o',label='Lowest Spectrum')
     plt.xlabel('Conductance')
     plt.ylabel('Balanced Accuracy')
-    plt.title(f'Balanced Accuracy vs Conductance for {graph} with |V|/|V_Q|={per}')
+    plt.title(f'Balanced Accuracy vs Conductance for {graph} with |V|/|V_Q|={per} and {edge_removal*10}% edges removed')
     plt.legend()
     plt.show()
