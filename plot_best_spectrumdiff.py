@@ -26,7 +26,8 @@ if __name__ == '__main__':
         if os.path.isdir(d):
             directories.append(d)
 
-    directories.sort()
+    #Sort directories by name mapped to integer
+    directories.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
 
     conductance_list = []
     og_balanced_accuracy_list = []
@@ -81,11 +82,13 @@ if __name__ == '__main__':
 
             for j in range(len(v_spectrum_diff)):
                 if v_spectrum_diff[j] < lowest_spectrum_diff:
+                    # print(f"New lowest spectrum diff: {v_spectrum_diff[j]}, at index {j} for voting")
                     lowest_spectrum_diff = v_spectrum_diff[j]
                     lowest_spectrum_treshold = f'0.{i}'
                     lowest_spectrum_index = j
                     lowest_spectrum_algorithm = ''
                 if n_spectrum_diff[j] < lowest_spectrum_diff:
+                    # print(f"New lowest spectrum diff: {n_spectrum_diff[j]}, at index {j} for neighborhood")
                     lowest_spectrum_diff = n_spectrum_diff[j]
                     lowest_spectrum_treshold = f'0.{i}'
                     lowest_spectrum_index = j

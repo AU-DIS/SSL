@@ -27,7 +27,8 @@ if __name__ == '__main__':
         if os.path.isdir(d):
             directories.append(d)
 
-    directories.sort()
+    #Sort directories by name mapped to integer
+    directories.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
 
     conductance_list = []
     og_balanced_accuracy_list = []
@@ -119,7 +120,7 @@ if __name__ == '__main__':
 
     labels = ['conductance', 'ssl', 'voting', 'neighborhood', 'cc_voting', 'cc_neighborhood', 'lowest_spectrum']
     
-    with open('best_spectrum.csv', 'w', encoding='UTF8', newline='') as f:
+    with open(f'{graph}_{per}.csv', 'w', encoding='UTF8', newline='') as f:
         writer = csv.writer(f)
 
         # write the header
