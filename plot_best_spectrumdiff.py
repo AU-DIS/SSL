@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     for folder in directories:
         with open(f'{folder}/conductance.txt') as f1, \
-             open(f'{folder}/og_balanced_accuracy.txt') as f2, \
+             open(f'{folder}/og2_balanced_accuracy.txt') as f2, \
              open(f'{folder}/balanced_accuracy_{threshold}.txt') as f3, \
              open(f'{folder}/n_balanced_accuracy_{threshold}.txt') as f4, \
              open(f'{folder}/cc_balanced_accuracy_{threshold}.txt') as f5, \
