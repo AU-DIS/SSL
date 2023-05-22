@@ -1,7 +1,7 @@
 import sys
 import os
 from problem.spectral_subgraph_localization import find_voting_majority, edgelist_to_adjmatrix
-from experiments_ssl import solution_graph, graph_edit_distance, use_graph_edit_distance_generator, enforce_cardinality_constraint_by_spectrum, spectrum_from_graph
+from experiments_ssl import solution_graph, graph_edit_distance, use_graph_edit_distance_generator, enforce_cardinality_constraint_by_spectrum, spectrum_from_graph, spectrum_abs_diff
 from problem.dijkstra import DijkstraSolution
 import torch
 import networkx as nx
@@ -60,47 +60,25 @@ if __name__ == '__main__':
                         votes = torch.tensor(votes)
                         experiments_to_make = int(torch.max(votes))
 
-                        # Recompute solutions!
-
                         # Find solutions for standard voting 
                         for threshold in thresholds:
                             v = find_voting_majority(votes, experiments_to_make, threshold)
                             S = solution_graph(G, v)
-                            ged_generator = graph_edit_distance(Q, S)
-                            ged = use_graph_edit_distance_generator(ged_generator)
+                            spectrum = spectrum_from_graph(S)
+                            spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
 
                             # Write it!
-                            f = open(f"{folder}/ged_{threshold}.txt", "a+")
-                            f.write(str([ged]))
-
-                            # Do the same with cardinality constraint enforced!
-                            v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
-                            S = solution_graph(G, v)
-                            ged_generator = graph_edit_distance(Q, S)
-                            ged = use_graph_edit_distance_generator(ged_generator)
-
-                            # Write it!
-                            f = open(f"{folder}/cc_ged_{threshold}.txt", "a+")
-                            f.write(str([ged]))
+                            f = open(f"{folder}/spectrum_diff_{threshold}.txt", "a+")
+                            f.write(str([spectrum_diff]))
 
                         # Find solutions for neighborhood 
                         for threshold in thresholds:
                             dijkstra = DijkstraSolution(A, votes, experiments_to_make, "cubic", threshold, "constant", length_of_query)
                             v = dijkstra.solution()
                             S = solution_graph(G, v)
-                            ged_generator = graph_edit_distance(Q, S)
-                            ged = use_graph_edit_distance_generator(ged_generator)
+                            spectrum = spectrum_from_graph(S)
+                            spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
 
                             # Write it!
-                            f = open(f"{folder}/n_ged_{threshold}.txt", "a+")
-                            f.write(str([ged]))
-
-                            # Do the same with cardinality constraint enforced!
-                            v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
-                            S = solution_graph(G, v)
-                            ged_generator = graph_edit_distance(Q, S)
-                            ged = use_graph_edit_distance_generator(ged_generator)
-
-                            # Write it!
-                            f = open(f"{folder}/cc_n_ged_{threshold}.txt", "a+")
-                            f.write(str([ged]))
+                            f = open(f"{folder}/spectrum_diff_{threshold}.txt", "a+")
+                            f.write(str([spectrum_diff]))
