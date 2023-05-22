@@ -641,8 +641,8 @@ if __name__ == '__main__':
         best_mu = {}
         best_m_par = 0
         counter_m_par = 0
-        folder_amount = 2
-        for folder_no in range(0,folder_amount):
+        folder_amount = 3
+        for folder_no in range(folder_amount - 1, folder_amount):
             if use_global_mu and folder_no==0: continue
             # perc = [0.1, 0.2, 0.3]
             clcr = [i/10.0 for i in range(percentage_lower_bound, percentage_upper_bound)]
