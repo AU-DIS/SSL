@@ -68,7 +68,7 @@ def spectrum_from_graph(G):
 # If |X| < |Y|, the last eigenvalue of G2 is copied, untill the length of both lists are of same length.
 def spectrum_abs_diff(X, Y):
     if len(X) > len(Y):
-        return 9999999
+        return 999999
 
     eigenvalues_to_compare = min(len(X), len(Y)) # If 
     Y = Y[:eigenvalues_to_compare]

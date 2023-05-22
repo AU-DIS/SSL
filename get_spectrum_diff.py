@@ -80,5 +80,5 @@ if __name__ == '__main__':
                             spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
 
                             # Write it!
-                            f = open(f"{folder}/spectrum_diff_{threshold}.txt", "a+")
+                            f = open(f"{folder}/n_spectrum_diff_{threshold}.txt", "a+")
                             f.write(str([spectrum_diff]))
