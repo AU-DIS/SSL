@@ -9,7 +9,7 @@ def delete_files_with_ged(path):
 def delete_files_with_spectrum_diff(path):
     for root, _, files in os.walk(path):
         for file in files:
-            if 'spectrum_diff' in file and not 'cc' in file:
+            if 'spectrum_diff' in file and not 'cc' in file and not 'og' in file:
                 os.remove(os.path.join(root, file))
 
 # delete_files_with_ged('experiments_final/')
