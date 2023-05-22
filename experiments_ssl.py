@@ -707,7 +707,7 @@ if __name__ == '__main__':
                 ground_truth = []
 
                 script_dir = os.path.dirname(__file__)
-                rel_path = f'experiments_final/{graph_name}/{per}/{lr*100}'
+                rel_path = f'experiments_final_2/{graph_name}/{per}/{lr*100}'
                 Path(rel_path).mkdir(parents=True, exist_ok=True)
                 abs_file_path = os.path.join(script_dir, rel_path)
                 if folder_no == 0: 
@@ -816,7 +816,7 @@ if __name__ == '__main__':
                         # og_ged.append(og_results["graph_edit_distance"])
 
                        # Write results for standard voting 
-                rel_path = f'experiments_final/{graph_name}/{per}/{lr*100}'
+                rel_path = f'experiments_final_2/{graph_name}/{per}/{lr*100}'
                 Path(rel_path).mkdir(parents=True, exist_ok=True)
                 script_dir = os.path.dirname(__file__)
                 abs_file_path = os.path.join(script_dir, rel_path)
