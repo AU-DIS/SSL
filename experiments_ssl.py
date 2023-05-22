@@ -67,8 +67,8 @@ def spectrum_from_graph(G):
 # Calculates the sum of the absolute entry-wise difference between two torch tensors.
 # If |X| < |Y|, the last eigenvalue of G2 is copied, untill the length of both lists are of same length.
 def spectrum_abs_diff(X, Y):
-    if len(Y) == 0:
-        return math.inf
+    if len(X) > len(Y):
+        return 9999999
 
     eigenvalues_to_compare = min(len(X), len(Y)) # If 
     Y = Y[:eigenvalues_to_compare]
