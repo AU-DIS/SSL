@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     for folder in directories:
         with open(f'{folder}/conductance.txt') as f1, \
-             open(f'{folder}/og_balanced_accuracy.txt') as f2, \
+             open(f'{folder}/og2_balanced_accuracy.txt') as f2, \
              open(f'{folder}/balanced_accuracy_{threshold}.txt') as f3, \
              open(f'{folder}/n_balanced_accuracy_{threshold}.txt') as f4, \
              open(f'{folder}/cc_balanced_accuracy_{threshold}.txt') as f5, \
@@ -71,7 +71,7 @@ if __name__ == '__main__':
         lowest_spectrum_algorithm = ''
         lowest_spectrum_index = 0
 
-        for i in range (1, 7):
+        for i in range (2, 5):
             with open(f'{folder}/cc_spectrum_diff_0.{i}.txt') as f5, \
                  open(f'{folder}/cc_n_spectrum_diff_0.{i}.txt') as f6:
                 v_spectrum_diff = f5.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
@@ -102,10 +102,10 @@ if __name__ == '__main__':
         lowest_spectrum_balanced_accuracy_list.append(lowest_spectrum_balanced_accuracy[lowest_spectrum_index])
 
     plt.plot(conductance_list, og_balanced_accuracy_list, marker='o', label='Original')
-    plt.plot(conductance_list, v_balanced_accuracy_list, marker='o',label='Voting')
-    plt.plot(conductance_list, n_balanced_accuracy_list, marker='o',label='Neighborhood')
-    plt.plot(conductance_list, cv_balanced_accuracy_list, marker='o',label='CC Voting')
-    plt.plot(conductance_list, cn_balanced_accuracy_list, marker='o',label='CC Neighborhood')
+    plt.plot(conductance_list, v_balanced_accuracy_list, marker='o',label=f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
+    plt.plot(conductance_list, n_balanced_accuracy_list, marker='o',label=f'Neighborhood {edge_removal*10}% edges removed and {threshold} threshold')
+    plt.plot(conductance_list, cv_balanced_accuracy_list, marker='o',label=f'CC Voting {edge_removal*10}% edges removed and {threshold} threshold')
+    plt.plot(conductance_list, cn_balanced_accuracy_list, marker='o',label=f'CC Neighborhood {edge_removal*10}% edges removed and {threshold} threshold')
     plt.plot(conductance_list, lowest_spectrum_balanced_accuracy_list, marker='o',label='Lowest Spectrum')
     plt.xlabel('Conductance')
     plt.ylabel('Balanced Accuracy')

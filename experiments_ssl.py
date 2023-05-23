@@ -273,15 +273,12 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
 
     problem_params = {'mu_spectral': 1,
                       'mu_l21': 0,
-                      'mu_MS': 0,
+                      'mu_MS': mu,# / (c ** 2), #The μ regularizer eq. 11
                       'mu_split': 0,
                       'mu_trace': 0.0,
                       'trace_val': 0,
                       'weighted_flag': False
                       }
-
-    solver_params={}
-
 
     solver_params = {'lr': 0.02, #learning rate
                  'a_tol': -1, # not used because its negative
@@ -307,19 +304,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     
     gt_inidicator = v_gt
     gt_inidicator[gt_inidicator>0]=1 
-    original_balanced = balanced_acc(v_gt, v_binary.clone().detach().numpy())
 
-    problem_params = {'mu_spectral': 1,
-                      'mu_l21': 0,
-                      'mu_MS': mu,# / (c ** 2), #The μ regularizer eq. 11
-                      'mu_split': 0,
-                      'mu_trace': 0.0,
-                      'trace_val': 0,
-                      'weighted_flag': False
-                      }
-    subgraph_isomorphism_solver.set_problem_params(problem_params)
-
-    v_binary, E_binary = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy())
     idx_smallest=np.argsort(v.detach().numpy())[:n1]
     v_smallest=np.ones((n,1))
     for i in range(n):
@@ -727,7 +712,6 @@ if __name__ == '__main__':
                     counter_m_par += 1
                 else:
                     if use_global_mu:
-                        # acc, bal_acc, condac, recall_s, precision_s, f1_s =run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds)
                         standard_voting_results, neighborhood_results, condac, og_results, ref_spectrum, standard_voting_results_with_cardinality_constraint, neighborhood_results_with_cardinality_constraint, votes, v_gt = run_opt(edgefile,query_nodes, 0.2, standard_voting_thresholds, neighborhood_thresholds, edge_removal)
                         conductances.append(condac)
                         edge_removals.append(edge_removal)
