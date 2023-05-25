@@ -43,8 +43,8 @@ def get_data_from_folder(suffix):
     og_balanced_accuracy_list = []
     v_balanced_accuracy_list = []
     n_balanced_accuracy_list = []
-    cv_balanced_accuracy_list = []
-    cn_balanced_accuracy_list = []
+    increase_v_balanced_accuracy_list = []
+    increase_n_balanced_accuracy_list = []
     lowest_spectrum_balanced_accuracy_list = []
 
     # TODO husk at fix og balanced
@@ -53,28 +53,28 @@ def get_data_from_folder(suffix):
              open(get_og_balanced_accuracy_file_string(folder)) as f2, \
              open(f'{folder}/balanced_accuracy_{threshold}.txt') as f3, \
              open(f'{folder}/n_balanced_accuracy_{threshold}.txt') as f4, \
-             open(f'{folder}/cc_balanced_accuracy_{threshold}.txt') as f5, \
-             open(f'{folder}/cc_n_balanced_accuracy_{threshold}.txt') as f6:
+             open(f'{folder}/increasing_edge_removal/balanced_accuracy_{threshold}.txt') as f5, \
+             open(f'{folder}/increasing_edge_removal/n_balanced_accuracy_{threshold}.txt') as f6:
             conductance = f1.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             og_balanced_accuracy = f2.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             v_balanced_accuracy = f3.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             n_balanced_accuracy = f4.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
-            cv_balanced_accuracy = f5.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
-            cn_balanced_accuracy = f6.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
+            increase_v_balanced_accuracy = f5.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
+            increase_n_balanced_accuracy = f6.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
         
         conductance = [float(i) for i in conductance]
         og_balanced_accuracy = [float(i) for i in og_balanced_accuracy]
         v_balanced_accuracy = [float(i) for i in v_balanced_accuracy]
         n_balanced_accuracy = [float(i) for i in n_balanced_accuracy]
-        cv_balanced_accuracy = [float(i) for i in cv_balanced_accuracy]
-        cn_balanced_accuracy = [float(i) for i in cn_balanced_accuracy]
+        increase_v_balanced_accuracy = [float(i) for i in increase_v_balanced_accuracy]
+        increase_n_balanced_accuracy = [float(i) for i in increase_n_balanced_accuracy]
 
         conductance_list.append(conductance[0])
         og_balanced_accuracy_list.append(og_balanced_accuracy[0])
         v_balanced_accuracy_list.append(v_balanced_accuracy[edge_removal-1])
         n_balanced_accuracy_list.append(n_balanced_accuracy[edge_removal-1])
-        cv_balanced_accuracy_list.append(cv_balanced_accuracy[edge_removal-1])
-        cn_balanced_accuracy_list.append(cn_balanced_accuracy[edge_removal-1])
+        increase_v_balanced_accuracy_list.append(increase_v_balanced_accuracy[0])
+        increase_n_balanced_accuracy_list.append(increase_n_balanced_accuracy[0])
 
         # Find lowest spectrum diff for voting and neighborhood
         lowest_spectrum_diff = math.inf
@@ -84,12 +84,18 @@ def get_data_from_folder(suffix):
 
         for i in range (2, 5):
             with open(f'{folder}/cc_spectrum_diff_0.{i}.txt') as f5, \
-                 open(f'{folder}/cc_n_spectrum_diff_0.{i}.txt') as f6:
+                 open(f'{folder}/cc_n_spectrum_diff_0.{i}.txt') as f6, \
+                 open(f'{folder}/increasing_edge_removal/cc_balanced_accuracy_0.{i}.txt') as f7, \
+                 open(f'{folder}/increasing_edge_removal/cc_n_balanced_accuracy_0.{i}.txt') as f8:
                 v_spectrum_diff = f5.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
                 n_spectrum_diff = f6.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
+                increase_v_spectrum_diff = f7.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
+                increase_n_spectrum_diff = f8.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             
             v_spectrum_diff = [float(i) for i in v_spectrum_diff]
             n_spectrum_diff = [float(i) for i in n_spectrum_diff]
+            increase_v_spectrum_diff = [float(i) for i in increase_v_spectrum_diff]
+            increase_n_spectrum_diff = [float(i) for i in increase_n_spectrum_diff]
 
             for j in range(len(v_spectrum_diff)):
                 if v_spectrum_diff[j] < lowest_spectrum_diff:
@@ -112,9 +118,9 @@ def get_data_from_folder(suffix):
 
         lowest_spectrum_balanced_accuracy_list.append(lowest_spectrum_balanced_accuracy[lowest_spectrum_index])
 
-    return conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, cv_balanced_accuracy_list, cn_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list
+    return conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list
 
-def plot(plt, conductance_list, balanced_accuracy_list, label):
+def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = False):
 
     combined = zip(conductance_list, balanced_accuracy_list)
     print("This is combined initially", combined)
@@ -130,7 +136,8 @@ def plot(plt, conductance_list, balanced_accuracy_list, label):
 
     z = np.polyfit(x, y, 2)
     p = np.poly1d(z)
-    # plt.scatter(x, y)
+    if should_scatter:
+        plt.scatter(x, y)
     plt.plot(x, p(x), label=label)
 
 if __name__ == '__main__':
@@ -141,41 +148,44 @@ if __name__ == '__main__':
     cv_balanced_accuracy_list = []
     cn_balanced_accuracy_list = []
     lowest_spectrum_balanced_accuracy_list = []
+    increase_v_balanced_accuracy_list = []
+    increase_n_balanced_accuracy_list = []
+    lowest_spectrum_balanced_accuracy_list = []
 
-    con_list, og_list, v_list, n_list, cv_list, cn_list, ls_list = get_data_from_folder("")
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n = get_data_from_folder("")
     conductance_list += con_list
     og_balanced_accuracy_list += og_list
     v_balanced_accuracy_list += v_list
     n_balanced_accuracy_list += n_list
-    cv_balanced_accuracy_list += cv_list
-    cn_balanced_accuracy_list += cn_list
+    increase_v_balanced_accuracy_list += inc_v
+    increase_n_balanced_accuracy_list += inc_n
     lowest_spectrum_balanced_accuracy_list += ls_list
 
-    con_list, og_list, v_list, n_list, cv_list, cn_list, ls_list = get_data_from_folder("_2")
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_2")
     conductance_list += con_list
     og_balanced_accuracy_list += og_list
     v_balanced_accuracy_list += v_list
     n_balanced_accuracy_list += n_list
-    cv_balanced_accuracy_list += cv_list
-    cn_balanced_accuracy_list += cn_list
+    increase_v_balanced_accuracy_list += inc_v
+    increase_n_balanced_accuracy_list += inc_n
     lowest_spectrum_balanced_accuracy_list += ls_list
 
-    con_list, og_list, v_list, n_list, cv_list, cn_list, ls_list = get_data_from_folder("_3")
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_3")
     conductance_list += con_list
     og_balanced_accuracy_list += og_list
     v_balanced_accuracy_list += v_list
     n_balanced_accuracy_list += n_list
-    cv_balanced_accuracy_list += cv_list
-    cn_balanced_accuracy_list += cn_list
+    increase_v_balanced_accuracy_list += inc_v
+    increase_n_balanced_accuracy_list += inc_n
     lowest_spectrum_balanced_accuracy_list += ls_list
 
-    con_list, og_list, v_list, n_list, cv_list, cn_list, ls_list = get_data_from_folder("_4")
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_4")
     conductance_list += con_list
     og_balanced_accuracy_list += og_list
     v_balanced_accuracy_list += v_list
     n_balanced_accuracy_list += n_list
-    cv_balanced_accuracy_list += cv_list
-    cn_balanced_accuracy_list += cn_list
+    increase_v_balanced_accuracy_list += inc_v
+    increase_n_balanced_accuracy_list += inc_n
     lowest_spectrum_balanced_accuracy_list += ls_list
 
     """ plt.plot(conductance_list, og_balanced_accuracy_list, marker='o', label='Original') """
@@ -191,6 +201,8 @@ if __name__ == '__main__':
     plot(plt, conductance_list, v_balanced_accuracy_list, f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
     # plot(plt, conductance_list, cv_balanced_accuracy_list)
     plot(plt, conductance_list, lowest_spectrum_balanced_accuracy_list, "Lowest Spectrum")
+    plot(plt, conductance_list, increase_v_balanced_accuracy_list, f'Voting increasing edge removal and threshold {threshold}')
+    plot(plt, conductance_list, increase_n_balanced_accuracy_list, f'Neighborhood increasing edge removal and threshold {threshold}')
 
     plt.xlabel('Conductance')
     plt.ylabel('Balanced Accuracy')
