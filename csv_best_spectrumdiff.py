@@ -6,7 +6,7 @@ import csv
 import numpy as np
 graph = 'football'
 per = '0.1'
-threshold = '0.3'
+threshold = '0.2'
 edge_removal = 3
 
 if len(sys.argv) >= 2:
@@ -99,32 +99,9 @@ if __name__ == '__main__':
         lowest_spectrum_balanced_accuracy = [float(i) for i in lowest_spectrum_balanced_accuracy]
 
         lowest_spectrum_balanced_accuracy_list.append(lowest_spectrum_balanced_accuracy[lowest_spectrum_index])
-
-    conductance_list = np.array(conductance_list)
-    og_balanced_accuracy_list = np.array(og_balanced_accuracy_list)
-    v_balanced_accuracy_list = np.array(v_balanced_accuracy_list)
-    n_balanced_accuracy_list = np.array(n_balanced_accuracy_list)
-    cv_balanced_accuracy_list = np.array(cv_balanced_accuracy_list)
-    cn_balanced_accuracy_list = np.array(cn_balanced_accuracy_list)
-    lowest_spectrum_balanced_accuracy_list = np.array(lowest_spectrum_balanced_accuracy_list)
-
-    #Transpose the arrays and combine them into one matrix
-    data = np.array([conductance_list, 
-                     og_balanced_accuracy_list, 
-                     v_balanced_accuracy_list, 
-                     n_balanced_accuracy_list, 
-                     cv_balanced_accuracy_list, 
-                     cn_balanced_accuracy_list, 
-                     lowest_spectrum_balanced_accuracy_list]).T
-
-
-    labels = ['conductance', 'ssl', 'voting', 'neighborhood', 'cc_voting', 'cc_neighborhood', 'lowest_spectrum']
     
-    with open(f'{graph}_{per}.csv', 'w', encoding='UTF8', newline='') as f:
-        writer = csv.writer(f)
-
-        # write the header
-        writer.writerow(labels)
-
-        # write multiple rows
-        writer.writerows(data)
+    with open(f'{graph}_{per}.csv', 'w', encoding='UTF8', newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=" ")
+        writer.writerow(['conductance', 'ssl', 'voting', 'neighborhood', 'cc_voting', 'cc_neighborhood', 'lowest_spectrum'])
+        for i in range(len(conductance_list)):
+            writer.writerow([conductance_list[i], og_balanced_accuracy_list[i], v_balanced_accuracy_list[i], n_balanced_accuracy_list[i], cv_balanced_accuracy_list[i], cn_balanced_accuracy_list[i], lowest_spectrum_balanced_accuracy_list[i]])
