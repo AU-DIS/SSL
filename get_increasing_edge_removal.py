@@ -21,7 +21,7 @@ if len(sys.argv) >= 4:
     experiments_to_make = int(sys.argv[3])
 
 if __name__ == '__main__':
-    rootdir = f'experiments_final_4/{graph}/{per}'
+    rootdir = f'experiments_final_5/{graph}/{per}'
     directories = []
 
     for file in os.listdir(rootdir):
