@@ -206,6 +206,6 @@ if __name__ == '__main__':
 
     plt.xlabel('Conductance')
     plt.ylabel('Balanced Accuracy')
-    plt.title(f'Balanced Accuracy vs Conductance for {graph} with |V|/|V_Q|={per} and {edge_removal*10}% edges removed')
+    plt.title(f'Balanced Accuracy vs Conductance for {graph} with |V|/|V_Q|={per}')
     plt.legend()
     plt.show()
