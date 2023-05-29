@@ -139,8 +139,8 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
 
     z = np.polyfit(x, y, 4)
     p = np.poly1d(z)
-    if should_scatter:
-        plt.scatter(x, y)
+    # if should_scatter:
+    plt.scatter(x, y)
     plt.plot(x, p(x), label=label)
 
 def entry_averaging():
