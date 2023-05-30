@@ -126,9 +126,9 @@ def get_data_from_folder(suffix):
 def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = False):
 
     combined = zip(conductance_list, balanced_accuracy_list)
-    print("This is combined initially", combined)
+    # print("This is combined initially", combined)
     sorted_combined = sorted(combined, key=lambda x: x[0])
-    print("This is combined afterwards", sorted_combined)
+    # print("This is combined afterwards", sorted_combined)
     x, y = zip(*sorted_combined)
     
     x = np.array(x)
@@ -137,7 +137,7 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
     """ x = np.array(conductance_list) """
     """ y = np.array(balanced_accuracy_list) """
 
-    z = np.polyfit(x, y, 2)
+    z = np.polyfit(x, y, 4)
     p = np.poly1d(z)
     # if should_scatter:
     plt.scatter(x, y)
@@ -273,6 +273,19 @@ def regression():
     increase_v_balanced_accuracy_list += inc_v
     increase_n_balanced_accuracy_list += inc_n
     lowest_spectrum_balanced_accuracy_list += ls_list
+
+
+    ones = [1, 1, 1, 1, 1]
+
+    conductance_list = [0, 0, 0, 0, 0] + conductance_list
+    og_balanced_accuracy_list = ones + og_balanced_accuracy_list
+    v_balanced_accuracy_list = ones + v_balanced_accuracy_list
+    n_balanced_accuracy_list = ones + n_balanced_accuracy_list
+    increase_v_balanced_accuracy_list = ones + increase_v_balanced_accuracy_list
+    increase_n_balanced_accuracy_list = ones + increase_n_balanced_accuracy_list
+    lowest_spectrum_balanced_accuracy_list = ones + lowest_spectrum_balanced_accuracy_list
+
+    print(increase_v_balanced_accuracy_list)
 
     plot(plt, conductance_list, og_balanced_accuracy_list, "Original")
     plot(plt, conductance_list, v_balanced_accuracy_list, f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
