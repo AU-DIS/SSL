@@ -8,6 +8,7 @@ from statistics import mean
 graph = 'football'
 per = '0.1'
 threshold = '0.2'
+n_threshold = '0.3'
 edge_removal = 3
 
 if len(sys.argv) >= 2:
@@ -17,7 +18,9 @@ if len(sys.argv) >= 3:
 if len(sys.argv) >= 4:
     threshold = sys.argv[3]
 if len(sys.argv) >= 5:
-    edge_removal = int(sys.argv[4])
+    n_threshold = sys.argv[4]
+if len(sys.argv) >= 6:
+    edge_removal = int(sys.argv[5])
 
 def get_og_balanced_accuracy_file_string(folder):
     for _, _, files in os.walk(folder):
@@ -53,9 +56,9 @@ def get_data_from_folder(suffix):
         with open(f'{folder}/conductance.txt') as f1, \
              open(get_og_balanced_accuracy_file_string(folder)) as f2, \
              open(f'{folder}/balanced_accuracy_{threshold}.txt') as f3, \
-             open(f'{folder}/n_balanced_accuracy_{threshold}.txt') as f4, \
+             open(f'{folder}/n_balanced_accuracy_{n_threshold}.txt') as f4, \
              open(f'{folder}/increasing_edge_removal/balanced_accuracy_{threshold}.txt') as f5, \
-             open(f'{folder}/increasing_edge_removal/n_balanced_accuracy_{threshold}.txt') as f6:
+             open(f'{folder}/increasing_edge_removal/n_balanced_accuracy_{n_threshold}.txt') as f6:
             conductance = f1.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             og_balanced_accuracy = f2.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             v_balanced_accuracy = f3.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
@@ -85,7 +88,7 @@ def get_data_from_folder(suffix):
         lowest_spectrum_algorithm = ''
         lowest_spectrum_index = 0
 
-        for i in range (2, 5):
+        for i in range (2, 6):
             with open(f'{folder}/cc_spectrum_diff_0.{i}.txt') as f5, \
                  open(f'{folder}/cc_n_spectrum_diff_0.{i}.txt') as f6, \
                  open(f'{folder}/increasing_edge_removal/cc_balanced_accuracy_0.{i}.txt') as f7, \
@@ -137,7 +140,7 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
     """ x = np.array(conductance_list) """
     """ y = np.array(balanced_accuracy_list) """
 
-    z = np.polyfit(x, y, 4)
+    z = np.polyfit(x, y, 2)
     p = np.poly1d(z)
     # if should_scatter:
     plt.scatter(x, y)
@@ -174,10 +177,10 @@ def entry_averaging():
 
     plt.plot(conductance_list, og_balanced_accuracy_list, marker='o', label='Original')
     plt.plot(conductance_list, v_balanced_accuracy_list, marker='o',label=f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
-    plt.plot(conductance_list, n_balanced_accuracy_list, marker='o',label=f'Neighborhood {edge_removal*10}% edges removed and {threshold} threshold')
+    plt.plot(conductance_list, n_balanced_accuracy_list, marker='o',label=f'Neighborhood {edge_removal*10}% edges removed and {n_threshold} threshold')
     plt.plot(conductance_list, lowest_spectrum_balanced_accuracy_list, marker='o',label='Lowest Spectrum')
     plt.plot(conductance_list, increase_v_balanced_accuracy_list, marker='o', label=f'Voting increasing edge removal and threshold {threshold}')
-    plt.plot(conductance_list, increase_n_balanced_accuracy_list, marker='o', label=f'Neighborhood increasing edge removal and threshold {threshold}')
+    plt.plot(conductance_list, increase_n_balanced_accuracy_list, marker='o', label=f'Neighborhood increasing edge removal and threshold {n_threshold}')
 
 def interval_averaging():
     data1 = list(zip(*get_data_from_folder("")))
