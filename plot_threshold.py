@@ -183,25 +183,27 @@ def plot_f1_vs_thresholds():
     con_5, og_f1_5, v_f1_5, n_f1_5 = entry_averaging(0.5)
     con_6, og_f1_6, v_f1_6, n_f1_6 = entry_averaging(0.6)
 
-    i = 5
+    for i in range (1, 8, 3):
 
-    x = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
-    y0 = [og_f1_1[i], og_f1_2[i], og_f1_3[i], og_f1_4[i], og_f1_5[i], og_f1_6[i]]
-    y3 = [v_f1_1[i], v_f1_2[i], v_f1_3[i], v_f1_4[i], v_f1_5[i], v_f1_6[i]]
+        x = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+        y0 = [og_f1_1[i], og_f1_2[i], og_f1_3[i], og_f1_4[i], og_f1_5[i], og_f1_6[i]]
+        y1 = [v_f1_1[i], v_f1_2[i], v_f1_3[i], v_f1_4[i], v_f1_5[i], v_f1_6[i]]
+        y2 = [n_f1_1[i], n_f1_2[i], n_f1_3[i], n_f1_4[i], n_f1_5[i], n_f1_6[i]]
 
-    plt.plot(x, y0, label='Original')
-    # plot(plt, x, y0, 'Original', True)
-    # plot(plt, x, y3, f'Voting {edge_removal*10}% edges removed', True)
+        plt.plot(x, y0, label='Original')
+        # plot(plt, x, y0, 'Original', True)
+        # plot(plt, x, y3, f'Voting {edge_removal*10}% edges removed', True)
 
-    plt.plot(x, y3, marker='o', label=f'Voting {edge_removal*10}% edges removed')
+        plt.plot(x, y1, marker='o', label=f'Voting {edge_removal*10}% edges removed')
+        plt.plot(x, y2, marker='o', label=f'Neighborhood {edge_removal*10}% edges removed')
 
-    plt.show()
+        plt.show()
 
-    with open(f'Threshold_vs_f1_{graph}_{per}.csv', 'w', encoding='UTF8', newline='') as csv_file:
-        writer = csv.writer(csv_file, delimiter=" ")
-        writer.writerow(['conductance', 'ssl', 'v_0.1', 'v_0.2', 'v_0.3', 'v_0.4', 'v_0.5', 'v_0.6'])
-        for i in range(len(v_f1_1)):
-            writer.writerow([con_1[i], og_f1_1[i], v_f1_1[i], v_f1_2[i], v_f1_3[i], v_f1_4[i], v_f1_5[i], v_f1_6[i]])
+        # with open(f'Threshold_vs_f1_con={round(con_1[i], 2)}_removal={edge_removal/10}_{graph}_{per}.csv', 'w', encoding='UTF8', newline='') as csv_file:
+        #     writer = csv.writer(csv_file, delimiter=" ")
+        #     writer.writerow(['threshold', 'edge_removal', 'conductance', 'ssl', 'voting', 'neighborhood'])
+        #     for j in range(len(x)):
+        #         writer.writerow([x[j], edge_removal//10, con_1[i], y0[j], y1[j], y2[j]])
 
 if __name__ == '__main__':
     # plot_multiple_thresholds()
