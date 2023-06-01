@@ -8,7 +8,7 @@ from statistics import mean
 graph = 'football'
 per = '0.1'
 threshold = '0.2'
-n_threshold = '0.3'
+n_threshold = '0.2'
 edge_removal = 3
 
 if len(sys.argv) >= 2:
@@ -142,6 +142,7 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
 
     z = np.polyfit(x, y, 2)
     p = np.poly1d(z)
+    print(p)
     # if should_scatter:
     plt.scatter(x, y)
     plt.plot(x, p(x), label=label)
@@ -278,24 +279,24 @@ def regression():
     lowest_spectrum_balanced_accuracy_list += ls_list
 
 
-    ones = [1, 1, 1, 1, 1]
+    # ones = [1, 1, 1, 1, 1]
 
-    conductance_list = [0, 0, 0, 0, 0] + conductance_list
-    og_balanced_accuracy_list = ones + og_balanced_accuracy_list
-    v_balanced_accuracy_list = ones + v_balanced_accuracy_list
-    n_balanced_accuracy_list = ones + n_balanced_accuracy_list
-    increase_v_balanced_accuracy_list = ones + increase_v_balanced_accuracy_list
-    increase_n_balanced_accuracy_list = ones + increase_n_balanced_accuracy_list
-    lowest_spectrum_balanced_accuracy_list = ones + lowest_spectrum_balanced_accuracy_list
+    # conductance_list = [0, 0, 0, 0, 0] + conductance_list
+    # og_balanced_accuracy_list = ones + og_balanced_accuracy_list
+    # v_balanced_accuracy_list = ones + v_balanced_accuracy_list
+    # n_balanced_accuracy_list = ones + n_balanced_accuracy_list
+    # increase_v_balanced_accuracy_list = ones + increase_v_balanced_accuracy_list
+    # increase_n_balanced_accuracy_list = ones + increase_n_balanced_accuracy_list
+    # lowest_spectrum_balanced_accuracy_list = ones + lowest_spectrum_balanced_accuracy_list
 
-    print(increase_v_balanced_accuracy_list)
+    # print(increase_v_balanced_accuracy_list)
 
     plot(plt, conductance_list, og_balanced_accuracy_list, "Original")
     plot(plt, conductance_list, v_balanced_accuracy_list, f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
-    plot(plt, conductance_list, n_balanced_accuracy_list, f'Neighborhood {edge_removal*10}% edges removed and {threshold} threshold')
+    plot(plt, conductance_list, n_balanced_accuracy_list, f'Neighborhood {edge_removal*10}% edges removed and {n_threshold} threshold')
     plot(plt, conductance_list, lowest_spectrum_balanced_accuracy_list, "Lowest Spectrum")
     plot(plt, conductance_list, increase_v_balanced_accuracy_list, f'Voting increasing edge removal and threshold {threshold}')
-    plot(plt, conductance_list, increase_n_balanced_accuracy_list, f'Neighborhood increasing edge removal and threshold {threshold}')
+    plot(plt, conductance_list, increase_n_balanced_accuracy_list, f'Neighborhood increasing edge removal and threshold {n_threshold}')
 
 if __name__ == '__main__':
     # entry_averaging()
