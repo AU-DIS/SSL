@@ -303,9 +303,6 @@ def regression():
     plot(plt, conductance_list, increase_v_balanced_accuracy_list, f'Voting increasing edge removal and threshold {threshold}')
     plot(plt, conductance_list, increase_n_balanced_accuracy_list, f'Neighborhood increasing edge removal and threshold {n_threshold}')
 
-def plot_edge_removal():
-    return
-
 if __name__ == '__main__':
     # entry_averaging()
     # interval_averaging()
