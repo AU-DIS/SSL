@@ -223,7 +223,7 @@ def interval_averaging():
     plt.plot(conductance_list, increase_v_balanced_accuracy_list, marker='o', label=f'Voting increasing edge removal and threshold {threshold}')
     plt.plot(conductance_list, increase_n_balanced_accuracy_list, marker='o', label=f'Neighborhood increasing edge removal and threshold {threshold}')
 
-def regression():
+def get_data_from_all_folders():
     conductance_list = []
     og_balanced_accuracy_list = []
     v_balanced_accuracy_list = []
@@ -278,6 +278,11 @@ def regression():
     increase_n_balanced_accuracy_list += inc_n
     lowest_spectrum_balanced_accuracy_list += ls_list
 
+    return conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list
+
+
+def regression():
+    conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list = get_data_from_all_folders()
 
     # ones = [1, 1, 1, 1, 1]
 
@@ -297,6 +302,9 @@ def regression():
     plot(plt, conductance_list, lowest_spectrum_balanced_accuracy_list, "Lowest Spectrum")
     plot(plt, conductance_list, increase_v_balanced_accuracy_list, f'Voting increasing edge removal and threshold {threshold}')
     plot(plt, conductance_list, increase_n_balanced_accuracy_list, f'Neighborhood increasing edge removal and threshold {n_threshold}')
+
+def plot_edge_removal():
+    return
 
 if __name__ == '__main__':
     # entry_averaging()
