@@ -36,7 +36,7 @@ def prec_recall_fscore(y_true, y_pred):
     return prec, recall, fscore
 
 def graph_edit_distance(y_true, y_pred):
-    return nx.optimize_graph_edit_distance(y_true, y_pred)
+    return nx.graph_edit_distance(y_true, y_pred, timeout=30)
 
 def use_graph_edit_distance_generator(generator_object, description=None):
     num_iterations = 0
