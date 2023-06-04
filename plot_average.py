@@ -11,6 +11,7 @@ threshold = '0.2'
 n_threshold = '0.2'
 edge_removal = 3
 measurement = 'balanced_accuracy'
+prefix = ''
 
 if len(sys.argv) >= 2:
     graph = sys.argv[1]
@@ -25,6 +26,8 @@ if len(sys.argv) >= 6:
 if len(sys.argv) >= 7:
     measurement = sys.argv[6]
 
+if measurement == 'spectrum_diff':
+    prefix = 'cc_'
 
 def get_og_balanced_accuracy_file_string(folder):
     for _, _, files in os.walk(folder):
@@ -132,12 +135,24 @@ def get_data_from_folder(suffix, edge_removal):
 
 def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = False):
 
+    before = len(conductance_list)
+    
     combined = zip(conductance_list, balanced_accuracy_list)
+
+    if measurement == 'spectrum_diff':
+        #if combined[1] == 999999 then remove this entry
+        combined = [x for x in combined if x[1] != 999999]
+
     # print("This is combined initially", combined)
     sorted_combined = sorted(combined, key=lambda x: x[0])
     # print("This is combined afterwards", sorted_combined)
     x, y = zip(*sorted_combined)
+
+    if measurement == 'spectrum_diff':
+        after = len(x)
+        print(f"Removed {before - after} out of {before} entries")
     
+
     x = np.array(x)
     y = np.array(y)
 
@@ -288,17 +303,25 @@ def get_data_from_all_folders(edge_removal):
 def regression():
     conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list = get_data_from_all_folders(edge_removal)
 
-    # ones = [1, 1, 1, 1, 1]
+    if measurement == 'balanced_accuracy':
+        ones = [1, 1, 1, 1, 1]
+        conductance_list = [0, 0, 0, 0, 0] + conductance_list
+        og_balanced_accuracy_list = ones + og_balanced_accuracy_list
+        v_balanced_accuracy_list = ones + v_balanced_accuracy_list
+        n_balanced_accuracy_list = ones + n_balanced_accuracy_list
+        increase_v_balanced_accuracy_list = ones + increase_v_balanced_accuracy_list
+        increase_n_balanced_accuracy_list = ones + increase_n_balanced_accuracy_list
+        lowest_spectrum_balanced_accuracy_list = ones + lowest_spectrum_balanced_accuracy_list
 
-    # conductance_list = [0, 0, 0, 0, 0] + conductance_list
-    # og_balanced_accuracy_list = ones + og_balanced_accuracy_list
-    # v_balanced_accuracy_list = ones + v_balanced_accuracy_list
-    # n_balanced_accuracy_list = ones + n_balanced_accuracy_list
-    # increase_v_balanced_accuracy_list = ones + increase_v_balanced_accuracy_list
-    # increase_n_balanced_accuracy_list = ones + increase_n_balanced_accuracy_list
-    # lowest_spectrum_balanced_accuracy_list = ones + lowest_spectrum_balanced_accuracy_list
-
-    # print(increase_v_balanced_accuracy_list)
+    elif measurement == 'spectrum_diff':
+        zeros = [0, 0, 0, 0, 0]
+        conductance_list = zeros + conductance_list
+        og_balanced_accuracy_list = zeros + og_balanced_accuracy_list
+        v_balanced_accuracy_list = zeros + v_balanced_accuracy_list
+        n_balanced_accuracy_list = zeros + n_balanced_accuracy_list
+        increase_v_balanced_accuracy_list = zeros + increase_v_balanced_accuracy_list
+        increase_n_balanced_accuracy_list = zeros + increase_n_balanced_accuracy_list
+        lowest_spectrum_balanced_accuracy_list = zeros + lowest_spectrum_balanced_accuracy_list
 
     plot(plt, conductance_list, og_balanced_accuracy_list, "Original")
     plot(plt, conductance_list, v_balanced_accuracy_list, f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
