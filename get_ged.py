@@ -15,7 +15,7 @@ if len(sys.argv) >= 3:
     per = sys.argv[2]
 
 if __name__ == '__main__':
-    folder_name = "experiments_final_2"
+    folder_name = "experiments_final_5"
     rootdir = f'{folder_name}/{graph}/{per}'
     directories = []
 
@@ -54,24 +54,24 @@ if __name__ == '__main__':
                         f"{folder_name}/football/0.1/10.0": [0.2],
                         f"{folder_name}/football/0.1/20.0": [0.2],
                         f"{folder_name}/football/0.1/30.0": [0.2],
-                        f"{folder_name}/football/0.1/40.0": [0.4],
+                        f"{folder_name}/football/0.1/40.0": [0.2],
                         f"{folder_name}/football/0.1/50.0": [0.2],
-                        f"{folder_name}/football/0.1/60.0": [0.4],
+                        f"{folder_name}/football/0.1/60.0": [0.2],
                         f"{folder_name}/football/0.1/70.0": [0.2],
-                        f"{folder_name}/football/0.1/80.0": [0.3],
+                        f"{folder_name}/football/0.1/80.0": [0.2],
                         f"{folder_name}/football/0.1/90.0": [0.2],
-                        f"{folder_name}/football/0.1/100.0": [0.4]
+                        f"{folder_name}/football/0.1/100.0": [0.2]
                     }
 
                     is_voting_algo = {
                         f"{folder_name}/football/0.1/10.0": True,
-                        f"{folder_name}/football/0.1/20.0": True,
+                        f"{folder_name}/football/0.1/20.0": False,
                         f"{folder_name}/football/0.1/30.0": True,
-                        f"{folder_name}/football/0.1/40.0": True,
-                        f"{folder_name}/football/0.1/50.0": True,
-                        f"{folder_name}/football/0.1/60.0": True,
-                        f"{folder_name}/football/0.1/70.0": True,
-                        f"{folder_name}/football/0.1/80.0": False,
+                        f"{folder_name}/football/0.1/40.0": False,
+                        f"{folder_name}/football/0.1/50.0": False,
+                        f"{folder_name}/football/0.1/60.0": False,
+                        f"{folder_name}/football/0.1/70.0": False,
+                        f"{folder_name}/football/0.1/80.0": True,
                         f"{folder_name}/football/0.1/90.0": False,
                         f"{folder_name}/football/0.1/100.0": False,
                     }
@@ -81,12 +81,12 @@ if __name__ == '__main__':
                         f"{folder_name}/football/0.1/20.0": 0,
                         f"{folder_name}/football/0.1/30.0": 0,
                         f"{folder_name}/football/0.1/40.0": 4,
-                        f"{folder_name}/football/0.1/50.0": 4,
-                        f"{folder_name}/football/0.1/60.0": 2,
-                        f"{folder_name}/football/0.1/70.0": 6,
-                        f"{folder_name}/football/0.1/80.0": 4,
+                        f"{folder_name}/football/0.1/50.0": 2,
+                        f"{folder_name}/football/0.1/60.0": 4,
+                        f"{folder_name}/football/0.1/70.0": 3,
+                        f"{folder_name}/football/0.1/80.0": 1,
                         f"{folder_name}/football/0.1/90.0": 4,
-                        f"{folder_name}/football/0.1/100.0": 2,
+                        f"{folder_name}/football/0.1/100.0": 0,
                     }
 
                     thresholds = thresholds_dict[folder]
@@ -108,11 +108,12 @@ if __name__ == '__main__':
                             for threshold in thresholds:
                                 print("Threshold:", threshold, "Voting")
                                 v = find_voting_majority(votes, experiments_to_make, threshold)
+                                v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
                                 S = solution_graph(G, v)
-                                ged = graph_edit_distance(G, S)
+                                ged = graph_edit_distance(Q, S)
 
                                 # Write it!
-                                f = open(f"{folder}/final_ged_{threshold}.txt", "a+")
+                                f = open(f"{folder}/cc_final_ged_{threshold}.txt", "a+")
                                 f.write(str([ged]))
                         
                         else:
@@ -121,9 +122,10 @@ if __name__ == '__main__':
                                 print("Threshold:", threshold, "Neighborhood")
                                 dijkstra = DijkstraSolution(A, votes, experiments_to_make, "cubic", threshold, "constant", length_of_query)
                                 v = dijkstra.solution()
+                                v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
                                 S = solution_graph(G, v)
-                                ged = graph_edit_distance(G, S)
+                                ged = graph_edit_distance(Q, S)
 
                                 # Write it!
-                                f = open(f"{folder}/n_final_ged_{threshold}.txt", "a+")
+                                f = open(f"{folder}/cc_n_final_ged_{threshold}.txt", "a+")
                                 f.write(str([ged]))
