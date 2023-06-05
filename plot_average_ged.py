@@ -50,7 +50,7 @@ def get_data_from_folder(suffix, edge_removal, threshold, n_threshold):
     directories.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
 
     conductance_list = []
-    og_balanced_accuracy_list = []
+    og_list = []
     v_balanced_accuracy_list = []
     n_balanced_accuracy_list = []
     increase_v_balanced_accuracy_list = []
@@ -60,17 +60,24 @@ def get_data_from_folder(suffix, edge_removal, threshold, n_threshold):
     # TODO husk at fix og balanced
     for folder in directories:
         with open(f'{folder}/conductance.txt') as f1, \
+             open(f'{folder}/cc_final_final_og_{measurement}.txt') as f4, \
              open(f'{folder}/increasing_edge_removal/cc_final_{measurement}_{threshold}.txt') as f5, \
              open(f'{folder}/increasing_edge_removal/cc_n_final_{measurement}_{n_threshold}.txt') as f6:
             conductance = f1.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
+            og = f4.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             increase_v_balanced_accuracy = f5.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             increase_n_balanced_accuracy = f6.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
 
+
+        print(folder)
+        print(og)
         conductance = [float(i) for i in conductance]
+        og = [float(i) for i in og]
         increase_v_balanced_accuracy = [float(i) for i in increase_v_balanced_accuracy]
         increase_n_balanced_accuracy = [float(i) for i in increase_n_balanced_accuracy]
 
         conductance_list.append(conductance[0])
+        og_list.append(og[0])
         increase_v_balanced_accuracy_list.append(increase_v_balanced_accuracy[0])
         increase_n_balanced_accuracy_list.append(increase_n_balanced_accuracy[0])
 
@@ -118,7 +125,7 @@ def get_data_from_folder(suffix, edge_removal, threshold, n_threshold):
 
         lowest_spectrum_balanced_accuracy_list.append(lowest_spectrum_balanced_accuracy[0])
 
-    return conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list
+    return conductance_list, og_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list
 
 def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = False):
 
@@ -316,6 +323,7 @@ def regression():
         increase_n_balanced_accuracy_list = zeros + increase_n_balanced_accuracy_list
         lowest_spectrum_balanced_accuracy_list = zeros + lowest_spectrum_balanced_accuracy_list
         
+    plot(plt, conductance_list, og_balanced_accuracy_list, f'Original SSL')
     plot(plt, conductance_list, increase_v_balanced_accuracy_list, f'Voting increasing edge removal and threshold {threshold}')
     plot(plt, conductance_list, increase_n_balanced_accuracy_list, f'Neighborhood increasing edge removal and threshold {n_threshold}')
     plot(plt, conductance_list, lowest_spectrum_balanced_accuracy_list, "Lowest Spectrum")
