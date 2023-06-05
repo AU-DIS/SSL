@@ -67,6 +67,7 @@ def parse_args():
     parser.add_argument('--niter_align', type=int, default=50, help='Iterations per epoch.')
     parser.add_argument('--reg_align', type=float, default=0.05, help='Regularization parameter.')
     parser.add_argument('--bsz', type=int, default=10, help='Batch size.')
+    
     parser.add_argument('--lr', type=float, default=1, help='Learning rate.')
 
 
