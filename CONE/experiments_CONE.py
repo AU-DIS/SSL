@@ -204,7 +204,7 @@ def kd_align(emb1, emb2, normalize=False, distance_metric="euclidean", num_top=1
 
 def main(args):
     import os
-    graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
+    graph_names = ['football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
     for graphname in graph_names:
         res_dict={}
         res_dict[graphname] = {}
@@ -212,7 +212,7 @@ def main(args):
         conductances = []
         accuracies = []
         f1s = []
-        for nofolder in range(1, 2):
+        for nofolder in range(2, 6):
             subsizes = [0.1, 0.2, 0.3]
             pers = [i/10.0 for i in range(1,11)]
             for subsize in subsizes:
