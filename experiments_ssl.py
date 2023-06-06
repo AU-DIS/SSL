@@ -626,11 +626,7 @@ if __name__ == '__main__':
         best_mu = {}
         best_m_par = 0
         counter_m_par = 0
-<<<<<<< HEAD
-        folder_amount = 3 
-=======
-        folder_amount = 4 
->>>>>>> 6d00362d568cff8e7a2c30476129614c1a6ad419
+        folder_amount = 4
         for folder_no in range(folder_amount - 1, folder_amount):
             if use_global_mu and folder_no==0: continue
             # perc = [0.1, 0.2, 0.3]
@@ -696,11 +692,7 @@ if __name__ == '__main__':
                 ground_truth = []
 
                 script_dir = os.path.dirname(__file__)
-<<<<<<< HEAD
-                rel_path = f'experiments_final_2/{graph_name}/{per}/{lr*100}'
-=======
                 rel_path = f'experiments_final_3/{graph_name}/{per}/{lr*100}'
->>>>>>> 6d00362d568cff8e7a2c30476129614c1a6ad419
                 Path(rel_path).mkdir(parents=True, exist_ok=True)
                 abs_file_path = os.path.join(script_dir, rel_path)
                 if folder_no == 0: 
@@ -808,11 +800,7 @@ if __name__ == '__main__':
                         # og_ged.append(og_results["graph_edit_distance"])
 
                        # Write results for standard voting 
-<<<<<<< HEAD
-                rel_path = f'experiments_final_2/{graph_name}/{per}/{lr*100}'
-=======
                 rel_path = f'experiments_final_3/{graph_name}/{per}/{lr*100}'
->>>>>>> 6d00362d568cff8e7a2c30476129614c1a6ad419
                 Path(rel_path).mkdir(parents=True, exist_ok=True)
                 script_dir = os.path.dirname(__file__)
                 abs_file_path = os.path.join(script_dir, rel_path)
