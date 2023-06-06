@@ -118,15 +118,27 @@ def get_data_from_folder(suffix, edge_removal, threshold, n_threshold):
                     lowest_spectrum_diff = v_spectrum_diff[j]
                     lowest_spectrum_treshold = f'0.{i}'
                     lowest_spectrum_index = j
-                    lowest_spectrum_algorithm = ''
+                    lowest_spectrum_algorithm = 'cc_'
                 if n_spectrum_diff[j] < lowest_spectrum_diff:
                     # print(f"New lowest spectrum diff: {n_spectrum_diff[j]}, at index {j} for neighborhood")
                     lowest_spectrum_diff = n_spectrum_diff[j]
                     lowest_spectrum_treshold = f'0.{i}'
                     lowest_spectrum_index = j
-                    lowest_spectrum_algorithm = 'n_'
-
-        with open(f'{folder}/cc_{lowest_spectrum_algorithm}{measurement}_{lowest_spectrum_treshold}.txt') as f7:
+                    lowest_spectrum_algorithm = 'cc_n_'
+            if increase_v_spectrum_diff[0] < lowest_spectrum_diff:
+                # print(f"New lowest spectrum diff: {increase_v_spectrum_diff[0]}, at index 0 for voting")
+                lowest_spectrum_diff = increase_v_spectrum_diff[0]
+                lowest_spectrum_treshold = f'0.{i}'
+                lowest_spectrum_index = 0
+                lowest_spectrum_algorithm = 'increasing_edge_removal/cc_'
+            if increase_n_spectrum_diff[0] < lowest_spectrum_diff:
+                # print(f"New lowest spectrum diff: {increase_n_spectrum_diff[0]}, at index 0 for neighborhood")
+                lowest_spectrum_diff = increase_n_spectrum_diff[0]
+                lowest_spectrum_treshold = f'0.{i}'
+                lowest_spectrum_index = 0
+                lowest_spectrum_algorithm = 'increasing_edge_removal/cc_n_'
+        # print( f'{folder}/{lowest_spectrum_algorithm}{measurement}_{lowest_spectrum_treshold}.txt')
+        with open(f'{folder}/{lowest_spectrum_algorithm}{measurement}_{lowest_spectrum_treshold}.txt') as f7:
             lowest_spectrum_balanced_accuracy = f7.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
 
         lowest_spectrum_balanced_accuracy = [float(i) for i in lowest_spectrum_balanced_accuracy]
@@ -152,7 +164,7 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
 
     if measurement == 'spectrum_diff':
         after = len(x)
-        print(f"Removed {before - after} out of {before} entries")
+        # print(f"Removed {before - after} out of {before} entries")
     
 
     x = np.array(x)
@@ -166,8 +178,8 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
     residuals = y - p(x)
     residual_variance = np.var(residuals)
 
-    # print(f"Variance of residuals for {label}:", residual_variance)
-    print(p)
+    print(f"Variance of residuals for {label}:", residual_variance)
+    print(f'{np.round(z[0],4)}^x^2 + {np.round(z[1],4)}*x + {np.round(z[2],4)}')
     
     # if should_scatter:
     plt.scatter(x, y)
@@ -268,14 +280,14 @@ def get_data_from_all_folders(edge_removal, threshold, n_threshold):
     increase_n_balanced_accuracy_list += inc_n
     lowest_spectrum_balanced_accuracy_list += ls_list
 
-    # con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_2", edge_removal, threshold, n_threshold)
-    # conductance_list += con_list
-    # og_balanced_accuracy_list += og_list
-    # v_balanced_accuracy_list += v_list
-    # n_balanced_accuracy_list += n_list
-    # increase_v_balanced_accuracy_list += inc_v
-    # increase_n_balanced_accuracy_list += inc_n
-    # lowest_spectrum_balanced_accuracy_list += ls_list
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_2", edge_removal, threshold, n_threshold)
+    conductance_list += con_list
+    og_balanced_accuracy_list += og_list
+    v_balanced_accuracy_list += v_list
+    n_balanced_accuracy_list += n_list
+    increase_v_balanced_accuracy_list += inc_v
+    increase_n_balanced_accuracy_list += inc_n
+    lowest_spectrum_balanced_accuracy_list += ls_list
 
     # con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_3", edge_removal, threshold, n_threshold)
     # conductance_list += con_list
@@ -295,14 +307,14 @@ def get_data_from_all_folders(edge_removal, threshold, n_threshold):
     # increase_n_balanced_accuracy_list += inc_n
     # lowest_spectrum_balanced_accuracy_list += ls_list
 
-    # con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_5", edge_removal, threshold, n_threshold)
-    # conductance_list += con_list
-    # og_balanced_accuracy_list += og_list
-    # v_balanced_accuracy_list += v_list
-    # n_balanced_accuracy_list += n_list
-    # increase_v_balanced_accuracy_list += inc_v
-    # increase_n_balanced_accuracy_list += inc_n
-    # lowest_spectrum_balanced_accuracy_list += ls_list
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_5", edge_removal, threshold, n_threshold)
+    conductance_list += con_list
+    og_balanced_accuracy_list += og_list
+    v_balanced_accuracy_list += v_list
+    n_balanced_accuracy_list += n_list
+    increase_v_balanced_accuracy_list += inc_v
+    increase_n_balanced_accuracy_list += inc_n
+    lowest_spectrum_balanced_accuracy_list += ls_list
 
     return conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list
 
@@ -349,7 +361,7 @@ def plot_edge_removals():
     _, _, v_balanced_accuracy_list_70, n_balanced_accuracy_list_70, _, _, _ = get_data_from_all_folders(edge_removal=7, threshold='0.2', n_threshold='0.2')
     _, _, v_balanced_accuracy_list_90, n_balanced_accuracy_list_90, _, _, _ = get_data_from_all_folders(edge_removal=9, threshold='0.2', n_threshold='0.2')
 
-    x = [10, 30, 50, 70, 90]
+    x = [0.1, 0.3, 0.5, 0.7, 0.9]
     y0 = [np.mean(og_balanced_accuracy_list), np.mean(og_balanced_accuracy_list), np.mean(og_balanced_accuracy_list), np.mean(og_balanced_accuracy_list), np.mean(og_balanced_accuracy_list) ]
     y1 = [np.mean(v_balanced_accuracy_list_10), np.mean(v_balanced_accuracy_list_30), np.mean(v_balanced_accuracy_list_50), np.mean(v_balanced_accuracy_list_70), np.mean(v_balanced_accuracy_list_90)]
     y2 = [np.mean(n_balanced_accuracy_list_10), np.mean(n_balanced_accuracy_list_30), np.mean(n_balanced_accuracy_list_50), np.mean(n_balanced_accuracy_list_70), np.mean(n_balanced_accuracy_list_90)]
@@ -376,8 +388,8 @@ def plot_edge_removals():
 if __name__ == '__main__':
     # entry_averaging()
     # interval_averaging()
-    regression()
-    # plot_edge_removals()
+    # regression()
+    plot_edge_removals()
 
     
     plt.legend()
