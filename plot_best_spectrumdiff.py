@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     for folder in directories:
         with open(f'{folder}/conductance.txt') as f1, \
-             open(f'{folder}/og2_balanced_accuracy.txt') as f2, \
+             open(f'{folder}/og_balanced_accuracy.txt') as f2, \
              open(f'{folder}/balanced_accuracy_{threshold}.txt') as f3, \
              open(f'{folder}/n_balanced_accuracy_{threshold}.txt') as f4, \
              open(f'{folder}/cc_balanced_accuracy_{threshold}.txt') as f5, \
@@ -93,6 +93,9 @@ if __name__ == '__main__':
                     lowest_spectrum_treshold = f'0.{i}'
                     lowest_spectrum_index = j
                     lowest_spectrum_algorithm = 'n_'
+
+
+        print(f"{folder}, algo: {lowest_spectrum_algorithm}, threshold: {lowest_spectrum_treshold}, edge_removal idx: {lowest_spectrum_index}")
 
         with open(f'{folder}/cc_{lowest_spectrum_algorithm}balanced_accuracy_{lowest_spectrum_treshold}.txt') as f7:
             lowest_spectrum_balanced_accuracy = f7.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')

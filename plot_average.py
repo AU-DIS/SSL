@@ -3,6 +3,7 @@ import sys
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
 from statistics import mean
 
 graph = 'football'
@@ -10,6 +11,8 @@ per = '0.1'
 threshold = '0.2'
 n_threshold = '0.2'
 edge_removal = 3
+measurement = 'balanced_accuracy'
+prefix = ''
 
 if len(sys.argv) >= 2:
     graph = sys.argv[1]
@@ -21,17 +24,23 @@ if len(sys.argv) >= 5:
     n_threshold = sys.argv[4]
 if len(sys.argv) >= 6:
     edge_removal = int(sys.argv[5])
+if len(sys.argv) >= 7:
+    measurement = sys.argv[6]
+
+if measurement == 'spectrum_diff':
+    prefix = 'cc_'
 
 def get_og_balanced_accuracy_file_string(folder):
-    for _, _, files in os.walk(folder):
-        for file in files:
-            if 'og2' in file:
-                # print("ENDED WITH OG2")
-                return f"{folder}/og2_balanced_accuracy.txt"
+    if measurement == 'balanced_accuracy':
+        for _, _, files in os.walk(folder):
+            for file in files:
+                if 'og2' in file:
+                    # print("ENDED WITH OG2")
+                    return f"{folder}/og2_{measurement}.txt"
     # print("ENDED NORMALLY WITHOUT OG2")
-    return f"{folder}/og_balanced_accuracy.txt"
+    return f"{folder}/{prefix}og_{measurement}.txt"
 
-def get_data_from_folder(suffix):
+def get_data_from_folder(suffix, edge_removal, threshold, n_threshold):
     rootdir = f'experiments_final{suffix}/{graph}/{per}'
     directories = []
 
@@ -55,17 +64,17 @@ def get_data_from_folder(suffix):
     for folder in directories:
         with open(f'{folder}/conductance.txt') as f1, \
              open(get_og_balanced_accuracy_file_string(folder)) as f2, \
-             open(f'{folder}/balanced_accuracy_{threshold}.txt') as f3, \
-             open(f'{folder}/n_balanced_accuracy_{n_threshold}.txt') as f4, \
-             open(f'{folder}/increasing_edge_removal/balanced_accuracy_{threshold}.txt') as f5, \
-             open(f'{folder}/increasing_edge_removal/n_balanced_accuracy_{n_threshold}.txt') as f6:
+             open(f'{folder}/{prefix}{measurement}_{threshold}.txt') as f3, \
+             open(f'{folder}/{prefix}n_{measurement}_{n_threshold}.txt') as f4, \
+             open(f'{folder}/increasing_edge_removal/{prefix}{measurement}_{threshold}.txt') as f5, \
+             open(f'{folder}/increasing_edge_removal/{prefix}n_{measurement}_{n_threshold}.txt') as f6:
             conductance = f1.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             og_balanced_accuracy = f2.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             v_balanced_accuracy = f3.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             n_balanced_accuracy = f4.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             increase_v_balanced_accuracy = f5.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             increase_n_balanced_accuracy = f6.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
-        
+
         conductance = [float(i) for i in conductance]
         og_balanced_accuracy = [float(i) for i in og_balanced_accuracy]
         v_balanced_accuracy = [float(i) for i in v_balanced_accuracy]
@@ -91,8 +100,8 @@ def get_data_from_folder(suffix):
         for i in range (2, 6):
             with open(f'{folder}/cc_spectrum_diff_0.{i}.txt') as f5, \
                  open(f'{folder}/cc_n_spectrum_diff_0.{i}.txt') as f6, \
-                 open(f'{folder}/increasing_edge_removal/cc_balanced_accuracy_0.{i}.txt') as f7, \
-                 open(f'{folder}/increasing_edge_removal/cc_n_balanced_accuracy_0.{i}.txt') as f8:
+                 open(f'{folder}/increasing_edge_removal/cc_spectrum_diff_0.{i}.txt') as f7, \
+                 open(f'{folder}/increasing_edge_removal/cc_n_spectrum_diff_0.{i}.txt') as f8:
                 v_spectrum_diff = f5.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
                 n_spectrum_diff = f6.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
                 increase_v_spectrum_diff = f7.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
@@ -117,7 +126,7 @@ def get_data_from_folder(suffix):
                     lowest_spectrum_index = j
                     lowest_spectrum_algorithm = 'n_'
 
-        with open(f'{folder}/cc_{lowest_spectrum_algorithm}balanced_accuracy_{lowest_spectrum_treshold}.txt') as f7:
+        with open(f'{folder}/cc_{lowest_spectrum_algorithm}{measurement}_{lowest_spectrum_treshold}.txt') as f7:
             lowest_spectrum_balanced_accuracy = f7.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
 
         lowest_spectrum_balanced_accuracy = [float(i) for i in lowest_spectrum_balanced_accuracy]
@@ -128,12 +137,24 @@ def get_data_from_folder(suffix):
 
 def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = False):
 
+    before = len(conductance_list)
+    
     combined = zip(conductance_list, balanced_accuracy_list)
+
+    if measurement == 'spectrum_diff':
+        #if combined[1] == 999999 then remove this entry
+        combined = [x for x in combined if x[1] != 999999]
+
     # print("This is combined initially", combined)
     sorted_combined = sorted(combined, key=lambda x: x[0])
     # print("This is combined afterwards", sorted_combined)
     x, y = zip(*sorted_combined)
+
+    if measurement == 'spectrum_diff':
+        after = len(x)
+        print(f"Removed {before - after} out of {before} entries")
     
+
     x = np.array(x)
     y = np.array(y)
 
@@ -142,17 +163,22 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
 
     z = np.polyfit(x, y, 2)
     p = np.poly1d(z)
+    residuals = y - p(x)
+    residual_variance = np.var(residuals)
+
+    # print(f"Variance of residuals for {label}:", residual_variance)
     print(p)
+    
     # if should_scatter:
     plt.scatter(x, y)
     plt.plot(x, p(x), label=label)
 
 def entry_averaging():
-    con1, og1, v1, n1, ls1, inc_v1, inc_n1 = get_data_from_folder("") 
-    con2, og2, v2, n2, ls2, inc_v2, inc_n2 = get_data_from_folder("_2") 
-    con3, og3, v3, n3, ls3, inc_v3, inc_n3 = get_data_from_folder("_3") 
-    con4, og4, v4, n4, ls4, inc_v4, inc_n4 = get_data_from_folder("_4") 
-    con5, og5, v5, n5, ls5, inc_v5, inc_n5 = get_data_from_folder("_5") 
+    con1, og1, v1, n1, ls1, inc_v1, inc_n1 = get_data_from_folder("", edge_removal) 
+    con2, og2, v2, n2, ls2, inc_v2, inc_n2 = get_data_from_folder("_2", edge_removal)
+    con3, og3, v3, n3, ls3, inc_v3, inc_n3 = get_data_from_folder("_3", edge_removal) 
+    con4, og4, v4, n4, ls4, inc_v4, inc_n4 = get_data_from_folder("_4", edge_removal) 
+    con5, og5, v5, n5, ls5, inc_v5, inc_n5 = get_data_from_folder("_5", edge_removal) 
 
     _conductance_list = list(zip(con1, con2, con3, con4, con5))
     conductance_list = [mean(t) for t in _conductance_list]
@@ -184,11 +210,11 @@ def entry_averaging():
     plt.plot(conductance_list, increase_n_balanced_accuracy_list, marker='o', label=f'Neighborhood increasing edge removal and threshold {n_threshold}')
 
 def interval_averaging():
-    data1 = list(zip(*get_data_from_folder("")))
-    data2 = list(zip(*get_data_from_folder("_2")))
-    data3 = list(zip(*get_data_from_folder("_3")))
-    data4 = list(zip(*get_data_from_folder("_4")))
-    data5 = list(zip(*get_data_from_folder("_5")))
+    data1 = list(zip(*get_data_from_folder("", edge_removal)))
+    data2 = list(zip(*get_data_from_folder("_2", edge_removal)))
+    data3 = list(zip(*get_data_from_folder("_3", edge_removal)))
+    data4 = list(zip(*get_data_from_folder("_4", edge_removal)))
+    data5 = list(zip(*get_data_from_folder("_5", edge_removal)))
 
     all_data = sorted(data1 + data2 + data3 + data4 + data5) # sorted by conductance!
 
@@ -223,7 +249,7 @@ def interval_averaging():
     plt.plot(conductance_list, increase_v_balanced_accuracy_list, marker='o', label=f'Voting increasing edge removal and threshold {threshold}')
     plt.plot(conductance_list, increase_n_balanced_accuracy_list, marker='o', label=f'Neighborhood increasing edge removal and threshold {threshold}')
 
-def regression():
+def get_data_from_all_folders(edge_removal, threshold, n_threshold):
     conductance_list = []
     og_balanced_accuracy_list = []
     v_balanced_accuracy_list = []
@@ -233,7 +259,7 @@ def regression():
     increase_n_balanced_accuracy_list = []
     lowest_spectrum_balanced_accuracy_list = []
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n = get_data_from_folder("")
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n = get_data_from_folder("", edge_removal, threshold, n_threshold)
     conductance_list += con_list
     og_balanced_accuracy_list += og_list
     v_balanced_accuracy_list += v_list
@@ -242,69 +268,117 @@ def regression():
     increase_n_balanced_accuracy_list += inc_n
     lowest_spectrum_balanced_accuracy_list += ls_list
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_2")
-    conductance_list += con_list
-    og_balanced_accuracy_list += og_list
-    v_balanced_accuracy_list += v_list
-    n_balanced_accuracy_list += n_list
-    increase_v_balanced_accuracy_list += inc_v
-    increase_n_balanced_accuracy_list += inc_n
-    lowest_spectrum_balanced_accuracy_list += ls_list
+    # con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_2", edge_removal, threshold, n_threshold)
+    # conductance_list += con_list
+    # og_balanced_accuracy_list += og_list
+    # v_balanced_accuracy_list += v_list
+    # n_balanced_accuracy_list += n_list
+    # increase_v_balanced_accuracy_list += inc_v
+    # increase_n_balanced_accuracy_list += inc_n
+    # lowest_spectrum_balanced_accuracy_list += ls_list
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_3")
-    conductance_list += con_list
-    og_balanced_accuracy_list += og_list
-    v_balanced_accuracy_list += v_list
-    n_balanced_accuracy_list += n_list
-    increase_v_balanced_accuracy_list += inc_v
-    increase_n_balanced_accuracy_list += inc_n
-    lowest_spectrum_balanced_accuracy_list += ls_list
+    # con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_3", edge_removal, threshold, n_threshold)
+    # conductance_list += con_list
+    # og_balanced_accuracy_list += og_list
+    # v_balanced_accuracy_list += v_list
+    # n_balanced_accuracy_list += n_list
+    # increase_v_balanced_accuracy_list += inc_v
+    # increase_n_balanced_accuracy_list += inc_n
+    # lowest_spectrum_balanced_accuracy_list += ls_list
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_4")
-    conductance_list += con_list
-    og_balanced_accuracy_list += og_list
-    v_balanced_accuracy_list += v_list
-    n_balanced_accuracy_list += n_list
-    increase_v_balanced_accuracy_list += inc_v
-    increase_n_balanced_accuracy_list += inc_n
-    lowest_spectrum_balanced_accuracy_list += ls_list
+    # con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_4", edge_removal, threshold, n_threshold)
+    # conductance_list += con_list
+    # og_balanced_accuracy_list += og_list
+    # v_balanced_accuracy_list += v_list
+    # n_balanced_accuracy_list += n_list
+    # increase_v_balanced_accuracy_list += inc_v
+    # increase_n_balanced_accuracy_list += inc_n
+    # lowest_spectrum_balanced_accuracy_list += ls_list
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_5")
-    conductance_list += con_list
-    og_balanced_accuracy_list += og_list
-    v_balanced_accuracy_list += v_list
-    n_balanced_accuracy_list += n_list
-    increase_v_balanced_accuracy_list += inc_v
-    increase_n_balanced_accuracy_list += inc_n
-    lowest_spectrum_balanced_accuracy_list += ls_list
+    # con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_5", edge_removal, threshold, n_threshold)
+    # conductance_list += con_list
+    # og_balanced_accuracy_list += og_list
+    # v_balanced_accuracy_list += v_list
+    # n_balanced_accuracy_list += n_list
+    # increase_v_balanced_accuracy_list += inc_v
+    # increase_n_balanced_accuracy_list += inc_n
+    # lowest_spectrum_balanced_accuracy_list += ls_list
+
+    return conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list
 
 
-    # ones = [1, 1, 1, 1, 1]
+def regression():
+    conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list = get_data_from_all_folders(edge_removal, threshold, n_threshold)
 
-    # conductance_list = [0, 0, 0, 0, 0] + conductance_list
-    # og_balanced_accuracy_list = ones + og_balanced_accuracy_list
-    # v_balanced_accuracy_list = ones + v_balanced_accuracy_list
-    # n_balanced_accuracy_list = ones + n_balanced_accuracy_list
-    # increase_v_balanced_accuracy_list = ones + increase_v_balanced_accuracy_list
-    # increase_n_balanced_accuracy_list = ones + increase_n_balanced_accuracy_list
-    # lowest_spectrum_balanced_accuracy_list = ones + lowest_spectrum_balanced_accuracy_list
+    if measurement == 'balanced_accuracy':
+        ones = [1, 1, 1, 1, 1]
+        conductance_list = [0, 0, 0, 0, 0] + conductance_list
+        og_balanced_accuracy_list = ones + og_balanced_accuracy_list
+        v_balanced_accuracy_list = ones + v_balanced_accuracy_list
+        n_balanced_accuracy_list = ones + n_balanced_accuracy_list
+        increase_v_balanced_accuracy_list = ones + increase_v_balanced_accuracy_list
+        increase_n_balanced_accuracy_list = ones + increase_n_balanced_accuracy_list
+        lowest_spectrum_balanced_accuracy_list = ones + lowest_spectrum_balanced_accuracy_list
 
-    # print(increase_v_balanced_accuracy_list)
+    elif measurement == 'spectrum_diff':
+        zeros = [0, 0, 0, 0, 0]
+        conductance_list = zeros + conductance_list
+        og_balanced_accuracy_list = zeros + og_balanced_accuracy_list
+        v_balanced_accuracy_list = zeros + v_balanced_accuracy_list
+        n_balanced_accuracy_list = zeros + n_balanced_accuracy_list
+        increase_v_balanced_accuracy_list = zeros + increase_v_balanced_accuracy_list
+        increase_n_balanced_accuracy_list = zeros + increase_n_balanced_accuracy_list
+        lowest_spectrum_balanced_accuracy_list = zeros + lowest_spectrum_balanced_accuracy_list
 
     plot(plt, conductance_list, og_balanced_accuracy_list, "Original")
-    plot(plt, conductance_list, v_balanced_accuracy_list, f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
-    plot(plt, conductance_list, n_balanced_accuracy_list, f'Neighborhood {edge_removal*10}% edges removed and {n_threshold} threshold')
+    # plot(plt, conductance_list, v_balanced_accuracy_list, f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
+    # plot(plt, conductance_list, n_balanced_accuracy_list, f'Neighborhood {edge_removal*10}% edges removed and {n_threshold} threshold')
+    plot(plt, conductance_list, increase_v_balanced_accuracy_list, f'Voting {threshold}')
+    plot(plt, conductance_list, increase_n_balanced_accuracy_list, f'Neighborhood {n_threshold}')
     plot(plt, conductance_list, lowest_spectrum_balanced_accuracy_list, "Lowest Spectrum")
-    plot(plt, conductance_list, increase_v_balanced_accuracy_list, f'Voting increasing edge removal and threshold {threshold}')
-    plot(plt, conductance_list, increase_n_balanced_accuracy_list, f'Neighborhood increasing edge removal and threshold {n_threshold}')
+
+
+    plt.xlabel('Conductance')
+    plt.ylabel(f'{measurement}')
+    plt.title(f'{measurement} vs Conductance for {graph} with |V|/|V_Q|={per}')
+
+def plot_edge_removals():
+    _, og_balanced_accuracy_list, v_balanced_accuracy_list_10, n_balanced_accuracy_list_10, _, _, _ = get_data_from_all_folders(edge_removal=1, threshold='0.2', n_threshold='0.2')
+    _, _, v_balanced_accuracy_list_30, n_balanced_accuracy_list_30, _, _, _ = get_data_from_all_folders(edge_removal=3, threshold='0.2', n_threshold='0.2')
+    _, _, v_balanced_accuracy_list_50, n_balanced_accuracy_list_50, _, _, _ = get_data_from_all_folders(edge_removal=5, threshold='0.2', n_threshold='0.2')
+    _, _, v_balanced_accuracy_list_70, n_balanced_accuracy_list_70, _, _, _ = get_data_from_all_folders(edge_removal=7, threshold='0.2', n_threshold='0.2')
+    _, _, v_balanced_accuracy_list_90, n_balanced_accuracy_list_90, _, _, _ = get_data_from_all_folders(edge_removal=9, threshold='0.2', n_threshold='0.2')
+
+    x = [10, 30, 50, 70, 90]
+    y0 = [np.mean(og_balanced_accuracy_list), np.mean(og_balanced_accuracy_list), np.mean(og_balanced_accuracy_list), np.mean(og_balanced_accuracy_list), np.mean(og_balanced_accuracy_list) ]
+    y1 = [np.mean(v_balanced_accuracy_list_10), np.mean(v_balanced_accuracy_list_30), np.mean(v_balanced_accuracy_list_50), np.mean(v_balanced_accuracy_list_70), np.mean(v_balanced_accuracy_list_90)]
+    y2 = [np.mean(n_balanced_accuracy_list_10), np.mean(n_balanced_accuracy_list_30), np.mean(n_balanced_accuracy_list_50), np.mean(n_balanced_accuracy_list_70), np.mean(n_balanced_accuracy_list_90)]
+    
+    # i = 2
+    # y0 = [og_balanced_accuracy_list[i], og_balanced_accuracy_list[i], og_balanced_accuracy_list[i], og_balanced_accuracy_list[i], og_balanced_accuracy_list[i]]
+    # y1 = [v_balanced_accuracy_list_10[i], v_balanced_accuracy_list_30[i], v_balanced_accuracy_list_50[i], v_balanced_accuracy_list_70[i], v_balanced_accuracy_list_90[i]]
+    # y2 = [n_balanced_accuracy_list_10[i], n_balanced_accuracy_list_30[i], n_balanced_accuracy_list_50[i], n_balanced_accuracy_list_70[i], n_balanced_accuracy_list_90[i]]
+
+    plt.plot(x, y0, marker='o',label=f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
+    plt.plot(x, y1, marker='o',label=f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
+    plt.plot(x, y2, marker='o',label=f'Neighborhood {edge_removal*10}% edges removed and {n_threshold} threshold')
+
+    plt.xlabel('Edge Removal %')
+    plt.ylabel('Balanced Accuracy')
+    plt.title(f'Balanced Accuracy vs edge removal % for {graph} with |V|/|V_Q|={per}')
+
+    with open(f'{graph}_{per}_edge_removal.csv', 'w', encoding='UTF8', newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=" ")
+        writer.writerow(['edge_removal','ssl', 'voting', 'neighborhood'])
+        for i in range(len(x)):
+            writer.writerow([x[i], y0[i], y1[i], y2[i]])
 
 if __name__ == '__main__':
     # entry_averaging()
     # interval_averaging()
     regression()
+    # plot_edge_removals()
 
-    plt.xlabel('Conductance')
-    plt.ylabel('Balanced Accuracy')
-    plt.title(f'Balanced Accuracy vs Conductance for {graph} with |V|/|V_Q|={per}')
+    
     plt.legend()
     plt.show()

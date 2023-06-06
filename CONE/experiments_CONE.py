@@ -67,6 +67,7 @@ def parse_args():
     parser.add_argument('--niter_align', type=int, default=50, help='Iterations per epoch.')
     parser.add_argument('--reg_align', type=float, default=0.05, help='Regularization parameter.')
     parser.add_argument('--bsz', type=int, default=10, help='Batch size.')
+    
     parser.add_argument('--lr', type=float, default=1, help='Learning rate.')
 
 
@@ -204,7 +205,7 @@ def kd_align(emb1, emb2, normalize=False, distance_metric="euclidean", num_top=1
 
 def main(args):
     import os
-    graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
+    graph_names = ['football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
     for graphname in graph_names:
         res_dict={}
         res_dict[graphname] = {}
@@ -212,7 +213,7 @@ def main(args):
         conductances = []
         accuracies = []
         f1s = []
-        for nofolder in range(1, 2):
+        for nofolder in range(2, 6):
             subsizes = [0.1, 0.2, 0.3]
             pers = [i/10.0 for i in range(1,11)]
             for subsize in subsizes:
