@@ -163,6 +163,10 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
 
     z = np.polyfit(x, y, 2)
     p = np.poly1d(z)
+    residuals = y - p(x)
+    residual_variance = np.var(residuals)
+    print(f"Variance of residuals for {label}:", residual_variance)
+
     print(p)
     # if should_scatter:
     plt.scatter(x, y)
@@ -328,8 +332,8 @@ def regression():
     plot(plt, conductance_list, og_balanced_accuracy_list, "Original")
     # plot(plt, conductance_list, v_balanced_accuracy_list, f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
     # plot(plt, conductance_list, n_balanced_accuracy_list, f'Neighborhood {edge_removal*10}% edges removed and {n_threshold} threshold')
-    plot(plt, conductance_list, increase_v_balanced_accuracy_list, f'Voting increasing edge removal and threshold {threshold}')
-    plot(plt, conductance_list, increase_n_balanced_accuracy_list, f'Neighborhood increasing edge removal and threshold {n_threshold}')
+    plot(plt, conductance_list, increase_v_balanced_accuracy_list, f'Voting {threshold}')
+    plot(plt, conductance_list, increase_n_balanced_accuracy_list, f'Neighborhood {n_threshold}')
     plot(plt, conductance_list, lowest_spectrum_balanced_accuracy_list, "Lowest Spectrum")
 
 
