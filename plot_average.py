@@ -165,9 +165,10 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
     p = np.poly1d(z)
     residuals = y - p(x)
     residual_variance = np.var(residuals)
-    print(f"Variance of residuals for {label}:", residual_variance)
 
+    # print(f"Variance of residuals for {label}:", residual_variance)
     print(p)
+    
     # if should_scatter:
     plt.scatter(x, y)
     plt.plot(x, p(x), label=label)
@@ -267,41 +268,41 @@ def get_data_from_all_folders(edge_removal, threshold, n_threshold):
     increase_n_balanced_accuracy_list += inc_n
     lowest_spectrum_balanced_accuracy_list += ls_list
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_2", edge_removal, threshold, n_threshold)
-    conductance_list += con_list
-    og_balanced_accuracy_list += og_list
-    v_balanced_accuracy_list += v_list
-    n_balanced_accuracy_list += n_list
-    increase_v_balanced_accuracy_list += inc_v
-    increase_n_balanced_accuracy_list += inc_n
-    lowest_spectrum_balanced_accuracy_list += ls_list
+    # con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_2", edge_removal, threshold, n_threshold)
+    # conductance_list += con_list
+    # og_balanced_accuracy_list += og_list
+    # v_balanced_accuracy_list += v_list
+    # n_balanced_accuracy_list += n_list
+    # increase_v_balanced_accuracy_list += inc_v
+    # increase_n_balanced_accuracy_list += inc_n
+    # lowest_spectrum_balanced_accuracy_list += ls_list
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_3", edge_removal, threshold, n_threshold)
-    conductance_list += con_list
-    og_balanced_accuracy_list += og_list
-    v_balanced_accuracy_list += v_list
-    n_balanced_accuracy_list += n_list
-    increase_v_balanced_accuracy_list += inc_v
-    increase_n_balanced_accuracy_list += inc_n
-    lowest_spectrum_balanced_accuracy_list += ls_list
+    # con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_3", edge_removal, threshold, n_threshold)
+    # conductance_list += con_list
+    # og_balanced_accuracy_list += og_list
+    # v_balanced_accuracy_list += v_list
+    # n_balanced_accuracy_list += n_list
+    # increase_v_balanced_accuracy_list += inc_v
+    # increase_n_balanced_accuracy_list += inc_n
+    # lowest_spectrum_balanced_accuracy_list += ls_list
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_4", edge_removal, threshold, n_threshold)
-    conductance_list += con_list
-    og_balanced_accuracy_list += og_list
-    v_balanced_accuracy_list += v_list
-    n_balanced_accuracy_list += n_list
-    increase_v_balanced_accuracy_list += inc_v
-    increase_n_balanced_accuracy_list += inc_n
-    lowest_spectrum_balanced_accuracy_list += ls_list
+    # con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_4", edge_removal, threshold, n_threshold)
+    # conductance_list += con_list
+    # og_balanced_accuracy_list += og_list
+    # v_balanced_accuracy_list += v_list
+    # n_balanced_accuracy_list += n_list
+    # increase_v_balanced_accuracy_list += inc_v
+    # increase_n_balanced_accuracy_list += inc_n
+    # lowest_spectrum_balanced_accuracy_list += ls_list
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_5", edge_removal, threshold, n_threshold)
-    conductance_list += con_list
-    og_balanced_accuracy_list += og_list
-    v_balanced_accuracy_list += v_list
-    n_balanced_accuracy_list += n_list
-    increase_v_balanced_accuracy_list += inc_v
-    increase_n_balanced_accuracy_list += inc_n
-    lowest_spectrum_balanced_accuracy_list += ls_list
+    # con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_5", edge_removal, threshold, n_threshold)
+    # conductance_list += con_list
+    # og_balanced_accuracy_list += og_list
+    # v_balanced_accuracy_list += v_list
+    # n_balanced_accuracy_list += n_list
+    # increase_v_balanced_accuracy_list += inc_v
+    # increase_n_balanced_accuracy_list += inc_n
+    # lowest_spectrum_balanced_accuracy_list += ls_list
 
     return conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list
 

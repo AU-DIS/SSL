@@ -102,7 +102,7 @@ if __name__ == '__main__':
                         cc_v_balanced_accuracy = balanced_acc(gt, v)
                         cc_v_fscore = f1(gt, v)
                         cc_v_spectrum = spectrum_from_graph(S)
-                        cc_v_spectrum_diff = spectrum_abs_diff(ref_spectrum, v_spectrum)
+                        cc_v_spectrum_diff = spectrum_abs_diff(ref_spectrum, cc_v_spectrum)
 
                         # Write it!
                         f = open(f"{folder}/increasing_edge_removal/cc_balanced_accuracy_{threshold}.txt", "a+")
@@ -143,7 +143,7 @@ if __name__ == '__main__':
                         cc_v_balanced_accuracy = balanced_acc(gt, v)
                         cc_v_fscore = f1(gt, v)
                         cc_v_spectrum = spectrum_from_graph(S)
-                        cc_v_spectrum_diff = spectrum_abs_diff(ref_spectrum, v_spectrum)
+                        cc_v_spectrum_diff = spectrum_abs_diff(ref_spectrum, cc_v_spectrum)
 
                         # Write it!
                         f = open(f"{folder}/increasing_edge_removal/cc_n_balanced_accuracy_{threshold}.txt", "a+")
