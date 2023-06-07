@@ -83,9 +83,6 @@ class DijkstraSolution:
         # If majority of the experiments agree on a node, include it as a source for Dijkstra.
         sources = self.__find_sources(_votes)
 
-        print("length of sources:", len(sources))
-        print("sources:", sources)
-
         # Run dijkstra for each source and save votes
         dijkstra_votes = np.zeros_like(_votes)
         for source in sources:

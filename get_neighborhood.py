@@ -10,7 +10,7 @@ from pathlib import Path
 graph = 'football'
 per = '0.1'
 
-subfolder = "linear2_neighborhood"
+subfolder = "quartic_neighborhood"
 
 if len(sys.argv) >= 2:
     graph = sys.argv[1]
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
                         # Find solutions for neighborhood 
                         for threshold in thresholds:
-                            dijkstra = DijkstraSolution(A, votes, experiments_to_make, "linear", threshold, "constant", length_of_query)
+                            dijkstra = DijkstraSolution(A, votes, experiments_to_make, "quartic", threshold, "constant", length_of_query)
                             v = dijkstra.solution()
                             v_balanced_accuracy = balanced_acc(gt, v)
                             v_fscore = f1(gt, v)
