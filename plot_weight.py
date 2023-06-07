@@ -194,7 +194,7 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
     residual_variance = np.var(residuals)
 
     print(f"Variance of residuals for {label}:", residual_variance)
-    print(f'{np.round(z[0],4)}^x^2 + {np.round(z[1],4)}*x + {np.round(z[2],4)}')
+    print(f'{np.round(z[0],4)}*x^2 + {np.round(z[1],4)}*x + {np.round(z[2],4)}')
     
     # if should_scatter:
     plt.scatter(x, y)
@@ -381,7 +381,7 @@ def regression():
         linear_balanced_accuracy_list = zeros + linear_balanced_accuracy_list
         quartic_balanced_accuracy_list = zeros + quartic_balanced_accuracy_list
 
-    plot(plt, conductance_list, og_balanced_accuracy_list, "Original")
+    # plot(plt, conductance_list, og_balanced_accuracy_list, "Original")
     # plot(plt, conductance_list, v_balanced_accuracy_list, f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
     plot(plt, conductance_list, linear_balanced_accuracy_list, f'Linear {edge_removal*10}% edges removed and {n_threshold} threshold')
     plot(plt, conductance_list, n_balanced_accuracy_list, f'Cubic {edge_removal*10}% edges removed and {n_threshold} threshold')
