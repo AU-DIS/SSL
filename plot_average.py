@@ -27,7 +27,7 @@ if len(sys.argv) >= 6:
 if len(sys.argv) >= 7:
     measurement = sys.argv[6]
 
-if measurement == 'spectrum_diff2':
+if measurement == 'spectrum_diff':
     prefix = 'cc_'
 
 def get_og_balanced_accuracy_file_string(folder):
@@ -98,10 +98,10 @@ def get_data_from_folder(suffix, edge_removal, threshold, n_threshold):
         lowest_spectrum_index = 0
 
         for i in range (2, 5):
-            with open(f'{folder}/cc_spectrum_diff2_0.{i}.txt') as f5, \
-                 open(f'{folder}/cc_n_spectrum_diff2_0.{i}.txt') as f6, \
-                 open(f'{folder}/increasing_edge_removal/cc_spectrum_diff2_0.{i}.txt') as f7, \
-                 open(f'{folder}/increasing_edge_removal/cc_n_spectrum_diff2_0.{i}.txt') as f8:
+            with open(f'{folder}/cc_spectrum_diff_0.{i}.txt') as f5, \
+                 open(f'{folder}/cc_n_spectrum_diff_0.{i}.txt') as f6, \
+                 open(f'{folder}/increasing_edge_removal/cc_spectrum_diff_0.{i}.txt') as f7, \
+                 open(f'{folder}/increasing_edge_removal/cc_n_spectrum_diff_0.{i}.txt') as f8:
                 v_spectrum_diff = f5.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
                 n_spectrum_diff = f6.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
                 increase_v_spectrum_diff = f7.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
@@ -162,7 +162,7 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
     # print("This is combined afterwards", sorted_combined)
     x, y = zip(*sorted_combined)
 
-    if measurement == 'spectrum_diff2':
+    if measurement == 'spectrum_diff':
         after = len(x)
         print(f"Removed {before - after} out of {before} entries")
     
@@ -182,7 +182,7 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
     print(f'{np.round(z[0],4)}*x^2 + {np.round(z[1],4)}*x + {np.round(z[2],4)}')
     
     # if should_scatter:
-    # plt.scatter(x, y)
+    plt.scatter(x, y)
     plt.plot(x, p(x), label=label)
 
 def entry_averaging():
@@ -298,14 +298,14 @@ def get_data_from_all_folders(edge_removal, threshold, n_threshold):
     increase_n_balanced_accuracy_list += inc_n
     lowest_spectrum_balanced_accuracy_list += ls_list
 
-    # con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_4", edge_removal, threshold, n_threshold)
-    # conductance_list += con_list
-    # og_balanced_accuracy_list += og_list
-    # v_balanced_accuracy_list += v_list
-    # n_balanced_accuracy_list += n_list
-    # increase_v_balanced_accuracy_list += inc_v
-    # increase_n_balanced_accuracy_list += inc_n
-    # lowest_spectrum_balanced_accuracy_list += ls_list
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_4", edge_removal, threshold, n_threshold)
+    conductance_list += con_list
+    og_balanced_accuracy_list += og_list
+    v_balanced_accuracy_list += v_list
+    n_balanced_accuracy_list += n_list
+    increase_v_balanced_accuracy_list += inc_v
+    increase_n_balanced_accuracy_list += inc_n
+    lowest_spectrum_balanced_accuracy_list += ls_list
 
     con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n  = get_data_from_folder("_5", edge_removal, threshold, n_threshold)
     conductance_list += con_list

@@ -77,13 +77,27 @@ if __name__ == '__main__':
                     # Find solutions for standard voting 
                     for threshold in thresholds:
                         v = find_voting_majority(votes, experiments_to_make, threshold)
+
+                        v_balanced_accuracy = balanced_acc(gt, v.clone().detach().numpy())
+
                         v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
                         S = solution_graph(G, v)
 
                         cc_v_spectrum = spectrum_from_graph(S)
                         cc_v_spectrum_diff = spectrum_abs_diff(ref_spectrum, cc_v_spectrum)
 
+                        cc_v_balanced_accuracy = balanced_acc(gt, v)
+
+                        
+                        Path(f"{folder}/increasing_edge_removal").mkdir(parents=True, exist_ok=True)
+
                         # Write it!
+                        f = open(f"{folder}/increasing_edge_removal/balanced_accuracy_{threshold}.txt", "w")
+                        f.write(str([v_balanced_accuracy]))
+
+                        f = open(f"{folder}/increasing_edge_removal/cc_balanced_accuracy_{threshold}.txt", "w")
+                        f.write(str([cc_v_balanced_accuracy]))
+
                         f = open(f"{folder}/increasing_edge_removal/cc_spectrum_diff_{threshold}.txt", "w")
                         f.write(str([cc_v_spectrum_diff]))
 
@@ -91,12 +105,23 @@ if __name__ == '__main__':
                     for threshold in thresholds:
                         dijkstra = DijkstraSolution(A, votes, experiments_to_make, "cubic", threshold, "constant", length_of_query)
                         v = dijkstra.solution()
+
+                        v_balanced_accuracy = balanced_acc(gt, v.clone().detach().numpy())
+
                         v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
                         S = solution_graph(G, v)
 
                         cc_v_spectrum = spectrum_from_graph(S)
                         cc_v_spectrum_diff = spectrum_abs_diff(ref_spectrum, cc_v_spectrum)
 
+                        cc_v_balanced_accuracy = balanced_acc(gt, v)
+
                         # Write it!
+                        f = open(f"{folder}/increasing_edge_removal/n_balanced_accuracy_{threshold}.txt", "w")
+                        f.write(str([v_balanced_accuracy]))
+
+                        f = open(f"{folder}/increasing_edge_removal/cc_n_balanced_accuracy_{threshold}.txt", "w")
+                        f.write(str([cc_v_balanced_accuracy]))
+
                         f = open(f"{folder}/increasing_edge_removal/cc_n_spectrum_diff_{threshold}.txt", "w")
                         f.write(str([cc_v_spectrum_diff]))
