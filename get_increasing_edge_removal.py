@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 from problem.spectral_subgraph_localization import find_voting_majority, edgelist_to_adjmatrix
-from experiments_ssl import balanced_acc, f1, solution_graph, graph_edit_distance, spectrum_abs_diff, use_graph_edit_distance_generator, enforce_cardinality_constraint_by_spectrum, spectrum_from_graph
+from experiments_ssl import balanced_acc, f1, solution_graph, graph_edit_distance, spectrum_abs_diff, use_graph_edit_distance_generator, enforce_cardinality_constraint_by_spectrum, spectrum_from_graph, spectrum_square_diff
 from problem.dijkstra import DijkstraSolution
 import torch
 import networkx as nx
@@ -77,27 +77,40 @@ if __name__ == '__main__':
                     # Find solutions for standard voting 
                     for threshold in thresholds:
                         v = find_voting_majority(votes, experiments_to_make, threshold)
+                        S = solution_graph(G, v)
+                        v_spectrum = spectrum_from_graph(S)
+                        test_diff = spectrum_abs_diff(ref_spectrum, v_spectrum)
+
                         v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
                         S = solution_graph(G, v)
 
                         cc_v_spectrum = spectrum_from_graph(S)
-                        cc_v_spectrum_diff = spectrum_abs_diff(ref_spectrum, cc_v_spectrum)
+                        cc_v_spectrum_diff = spectrum_square_diff(ref_spectrum, cc_v_spectrum)
 
                         # Write it!
                         f = open(f"{folder}/increasing_edge_removal/cc_spectrum_diff2_{threshold}.txt", "w")
                         f.write(str([cc_v_spectrum_diff]))
 
+                        f = open(f"{folder}/increasing_edge_removal/spectrum_diff_test_{threshold}.txt", "w")
+                        f.write(str([test_diff]))
 
                     # Find solutions for neighborhood 
                     for threshold in thresholds:
                         dijkstra = DijkstraSolution(A, votes, experiments_to_make, "cubic", threshold, "constant", length_of_query)
                         v = dijkstra.solution()
+                        S = solution_graph(G, v)
+                        v_spectrum = spectrum_from_graph(S)
+                        test_diff = spectrum_abs_diff(ref_spectrum, v_spectrum)
+
                         v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
                         S = solution_graph(G, v)
 
                         cc_v_spectrum = spectrum_from_graph(S)
-                        cc_v_spectrum_diff = spectrum_abs_diff(ref_spectrum, cc_v_spectrum)
+                        cc_v_spectrum_diff = spectrum_square_diff(ref_spectrum, cc_v_spectrum)
 
                         # Write it!
                         f = open(f"{folder}/increasing_edge_removal/cc_n_spectrum_diff2_{threshold}.txt", "w")
                         f.write(str([cc_v_spectrum_diff]))
+
+                        f = open(f"{folder}/increasing_edge_removal/n_spectrum_diff_test_{threshold}.txt", "w")
+                        f.write(str([test_diff]))
