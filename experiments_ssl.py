@@ -75,6 +75,16 @@ def spectrum_abs_diff(X, Y):
     X = X[:eigenvalues_to_compare]
     return torch.sum(torch.abs(torch.sub(X, Y))).item()
 
+def spectrum_square_diff(X, Y):
+    if len(X) > len(Y):
+        return 999999
+
+    eigenvalues_to_compare = min(len(X), len(Y)) # If 
+    Y = Y[:eigenvalues_to_compare]
+    X = X[:eigenvalues_to_compare]
+
+    return torch.sum(torch.square(torch.sub(X, Y))).item()
+
 def greedy_remove_node_by_spectrum(G, solution_vector, ref_spectrum):
     solution_indices = [i for i, res in enumerate(solution_vector) if res == 0]
     return greedy_remove_node_by_spectrum_aux(G, solution_indices, ref_spectrum)

@@ -1,7 +1,7 @@
 import sys
 import os
 from problem.spectral_subgraph_localization import find_voting_majority, edgelist_to_adjmatrix
-from experiments_ssl import solution_graph, graph_edit_distance, use_graph_edit_distance_generator, enforce_cardinality_constraint_by_spectrum, spectrum_from_graph, spectrum_abs_diff
+from experiments_ssl import solution_graph, graph_edit_distance, use_graph_edit_distance_generator, enforce_cardinality_constraint_by_spectrum, spectrum_from_graph, spectrum_abs_diff, spectrum_square_diff
 from problem.dijkstra import DijkstraSolution
 import torch
 import networkx as nx
@@ -15,7 +15,7 @@ if len(sys.argv) >= 3:
     per = sys.argv[2]
 
 if __name__ == '__main__':
-    rootdir = f'experiments_final/{graph}/{per}'
+    rootdir = f'experiments_final_5/{graph}/{per}'
     directories = []
 
     for file in os.listdir(rootdir):
@@ -48,7 +48,7 @@ if __name__ == '__main__':
                     ref_spectrum = spectrum_from_graph(Q)
                     length_of_query = len(Q.nodes())
 
-                    thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+                    thresholds = [0.2, 0.3, 0.4]
                     votes_string = votes_file.read().replace('])', '').replace('\n', '')
                     votes_list = []
                     for tensor in votes_string.split(']['):
@@ -63,22 +63,24 @@ if __name__ == '__main__':
                         # Find solutions for standard voting 
                         for threshold in thresholds:
                             v = find_voting_majority(votes, experiments_to_make, threshold)
+                            v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
                             S = solution_graph(G, v)
                             spectrum = spectrum_from_graph(S)
-                            spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
+                            spectrum_diff = spectrum_square_diff(ref_spectrum, spectrum)
 
                             # Write it!
-                            f = open(f"{folder}/spectrum_diff_{threshold}.txt", "a+")
+                            f = open(f"{folder}/cc_spectrum_diff2_{threshold}.txt", "a+")
                             f.write(str([spectrum_diff]))
 
                         # Find solutions for neighborhood 
                         for threshold in thresholds:
                             dijkstra = DijkstraSolution(A, votes, experiments_to_make, "cubic", threshold, "constant", length_of_query)
                             v = dijkstra.solution()
+                            v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
                             S = solution_graph(G, v)
                             spectrum = spectrum_from_graph(S)
-                            spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
+                            spectrum_diff = spectrum_square_diff(ref_spectrum, spectrum)
 
                             # Write it!
-                            f = open(f"{folder}/n_spectrum_diff_{threshold}.txt", "a+")
+                            f = open(f"{folder}/cc_n_spectrum_diff2_{threshold}.txt", "a+")
                             f.write(str([spectrum_diff]))
