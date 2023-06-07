@@ -12,7 +12,7 @@ import networkx as nx
 graph = 'football'
 per = '0.1'
 folder_suffix = ''
-experiments_to_make = 420
+experiments_to_make = 150
 
 if len(sys.argv) >= 2:
     graph = sys.argv[1]
