@@ -636,11 +636,7 @@ if __name__ == '__main__':
         best_mu = {}
         best_m_par = 0
         counter_m_par = 0
-<<<<<<< HEAD
-        folder_amount = 5 
-=======
         folder_amount = 4
->>>>>>> cb265400183a743c955d7f004178ea98f15c1c2d
         for folder_no in range(folder_amount - 1, folder_amount):
             if use_global_mu and folder_no==0: continue
             # perc = [0.1, 0.2, 0.3]
