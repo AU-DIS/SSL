@@ -12,7 +12,7 @@ import networkx as nx
 graph = 'football'
 per = '0.1'
 folder_suffix = ''
-experiments_to_make = 420
+experiments_to_make = 150
 
 if len(sys.argv) >= 2:
     graph = sys.argv[1]
@@ -24,7 +24,7 @@ if len(sys.argv) >= 5:
     experiments_to_make = int(sys.argv[4])
 
 if __name__ == '__main__':
-    rootdir = f'experiments_final{folder_suffix}/{graph}/{per}'
+    rootdir = f'experiments_final_2{folder_suffix}/{graph}/{per}'
     directories = []
 
     for file in os.listdir(rootdir):
