@@ -10,7 +10,7 @@ from pathlib import Path
 graph = 'football'
 per = '0.1'
 
-subfolder = "linear_neighborhood"
+subfolder = "linear2_neighborhood"
 
 if len(sys.argv) >= 2:
     graph = sys.argv[1]
@@ -18,7 +18,7 @@ if len(sys.argv) >= 3:
     per = sys.argv[2]
 
 if __name__ == '__main__':
-    rootdir = f'experiments_final/{graph}/{per}'
+    rootdir = f'experiments_final_5/{graph}/{per}'
     directories = []
 
     for file in os.listdir(rootdir):
@@ -51,7 +51,7 @@ if __name__ == '__main__':
                     ref_spectrum = spectrum_from_graph(Q)
                     length_of_query = len(Q.nodes())
 
-                    thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+                    thresholds = [0.2, 0.3, 0.4]
                     votes_string = votes_file.read().replace('])', '').replace('\n', '')
                     votes_list = []
                     for tensor in votes_string.split(']['):
