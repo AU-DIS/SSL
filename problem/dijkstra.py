@@ -20,6 +20,8 @@ class DijkstraSolution:
             return self.length_of_query * self.experiments_to_make**2 + 1
         if self.variant == "cubic":
             return self.length_of_query * self.experiments_to_make**3 + 1
+        if self.variant == "quartic":
+            return self.length_of_query * self.experiments_to_make**4 + 1
         raise Exception("The variant was not recognized!")
 
     def __get_weight(self, vote):
@@ -31,6 +33,8 @@ class DijkstraSolution:
             return vote ** 2
         if self.variant == "cubic":
             return vote ** 3
+        if self.variant == "quartic":
+            return vote ** 4
         raise Exception("The variant was not recognized!")
 
     def __update_dijkstra_votes(self, dijkstra_votes, dijkstra_result, source_votes):
@@ -78,9 +82,6 @@ class DijkstraSolution:
 
         # If majority of the experiments agree on a node, include it as a source for Dijkstra.
         sources = self.__find_sources(_votes)
-
-        print("length of sources:", len(sources))
-        print("sources:", sources)
 
         # Run dijkstra for each source and save votes
         dijkstra_votes = np.zeros_like(_votes)

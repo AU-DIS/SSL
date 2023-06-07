@@ -39,6 +39,11 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
     z = np.polyfit(x, y, 1)
     p = np.poly1d(z)
 
+    residuals = y - p(x)
+    residual_variance = np.var(residuals)
+
+    print(f"Variance of residuals for {label}:", residual_variance)
+
     print(p)
     # if should_scatter:
     plt.scatter(x, y)
