@@ -18,7 +18,7 @@ if len(sys.argv) >= 3:
     per = sys.argv[2]
 
 if __name__ == '__main__':
-    rootdir = f'experiments_final_5/{graph}/{per}'
+    rootdir = f'experiments_final/{graph}/{per}'
     directories = []
 
     for file in os.listdir(rootdir):
