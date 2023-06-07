@@ -678,5 +678,5 @@ if __name__ == '__main__':
                 abs_file_path = os.path.join(script_dir, rel_path)
                 
                 # Write for original results
-                f = open(f'{abs_file_path}/og_spectrum_diff_no_threshold.txt', 'a+')
+                f = open(f'{abs_file_path}/og_spectrum_diff_no_threshold_abs.txt', 'a+')
                 f.write(str(og_spectrum_diff))
