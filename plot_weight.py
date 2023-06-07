@@ -61,6 +61,7 @@ def get_data_from_folder(suffix, edge_removal, threshold, n_threshold):
     lowest_spectrum_balanced_accuracy_list = []
     quadratic_n_balanced_accuracy_list = []
     linear_n_balanced_accuracy_list = []
+    quartic_n_balanced_accuracy_list = []
 
     # TODO husk at fix og balanced
     for folder in directories:
@@ -71,7 +72,8 @@ def get_data_from_folder(suffix, edge_removal, threshold, n_threshold):
              open(f'{folder}/increasing_edge_removal/{prefix}{measurement}_{threshold}.txt') as f5, \
              open(f'{folder}/increasing_edge_removal/{prefix}n_{measurement}_{n_threshold}.txt') as f6, \
              open(f'{folder}/quadratic_neighborhood/{prefix}n_{measurement}_{n_threshold}.txt') as f7, \
-             open(f'{folder}/linear_neighborhood/{prefix}n_{measurement}_{n_threshold}.txt') as f8:
+             open(f'{folder}/linear2_neighborhood/{prefix}n_{measurement}_{n_threshold}.txt') as f8, \
+             open(f'{folder}/quartic_neighborhood/{prefix}n_{measurement}_{n_threshold}.txt') as f9:
             conductance = f1.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             og_balanced_accuracy = f2.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             v_balanced_accuracy = f3.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
@@ -80,6 +82,7 @@ def get_data_from_folder(suffix, edge_removal, threshold, n_threshold):
             increase_n_balanced_accuracy = f6.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             quadratic_n_balanced_accuracy = f7.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
             linear_n_balanced_accuracy = f8.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
+            quartic_n_balanced_accuracy = f9.read().replace('][', ', ').replace('[', '').replace(']', '').split(', ')
 
         conductance = [float(i) for i in conductance]
         og_balanced_accuracy = [float(i) for i in og_balanced_accuracy]
@@ -89,6 +92,7 @@ def get_data_from_folder(suffix, edge_removal, threshold, n_threshold):
         increase_n_balanced_accuracy = [float(i) for i in increase_n_balanced_accuracy]
         quadratic_n_balanced_accuracy = [float(i) for i in quadratic_n_balanced_accuracy]
         linear_n_balanced_accuracy = [float(i) for i in linear_n_balanced_accuracy]
+        quartic_n_balanced_accuracy = [float(i) for i in quartic_n_balanced_accuracy]
 
         conductance_list.append(conductance[0])
         og_balanced_accuracy_list.append(og_balanced_accuracy[0])
@@ -100,6 +104,7 @@ def get_data_from_folder(suffix, edge_removal, threshold, n_threshold):
         n_balanced_accuracy_list.append(n_balanced_accuracy[idx])
         quadratic_n_balanced_accuracy_list.append(quadratic_n_balanced_accuracy[idx])
         linear_n_balanced_accuracy_list.append(linear_n_balanced_accuracy[idx])
+        quartic_n_balanced_accuracy_list.append(quartic_n_balanced_accuracy[idx])
 
         # Find lowest spectrum diff for voting and neighborhood
         lowest_spectrum_diff = math.inf
@@ -155,7 +160,7 @@ def get_data_from_folder(suffix, edge_removal, threshold, n_threshold):
 
         lowest_spectrum_balanced_accuracy_list.append(lowest_spectrum_balanced_accuracy[lowest_spectrum_index])
 
-    return conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list, quadratic_n_balanced_accuracy_list, linear_n_balanced_accuracy_list
+    return conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list, quadratic_n_balanced_accuracy_list, linear_n_balanced_accuracy_list, quartic_n_balanced_accuracy_list
 
 def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = False):
 
@@ -282,8 +287,9 @@ def get_data_from_all_folders(edge_removal, threshold, n_threshold):
     lowest_spectrum_balanced_accuracy_list = []
     quadratic_balanced_accuracy_list = []
     linaer_balanced_accuracy_list = []
+    quartic_balanced_accuracy_list = []
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n , quad_n1, lin_n1 = get_data_from_folder("", edge_removal, threshold, n_threshold)
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n , quad_n1, lin_n1, quart_n1 = get_data_from_folder("", edge_removal, threshold, n_threshold)
     conductance_list += con_list
     og_balanced_accuracy_list += og_list
     v_balanced_accuracy_list += v_list
@@ -293,8 +299,9 @@ def get_data_from_all_folders(edge_removal, threshold, n_threshold):
     lowest_spectrum_balanced_accuracy_list += ls_list
     quadratic_balanced_accuracy_list += quad_n1
     linaer_balanced_accuracy_list += lin_n1
+    quartic_balanced_accuracy_list += quart_n1
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n, quad_n1, lin_n1  = get_data_from_folder("_2", edge_removal, threshold, n_threshold)
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n, quad_n1, lin_n1, quart_n1  = get_data_from_folder("_2", edge_removal, threshold, n_threshold)
     conductance_list += con_list
     og_balanced_accuracy_list += og_list
     v_balanced_accuracy_list += v_list
@@ -304,8 +311,9 @@ def get_data_from_all_folders(edge_removal, threshold, n_threshold):
     lowest_spectrum_balanced_accuracy_list += ls_list
     quadratic_balanced_accuracy_list += quad_n1
     linaer_balanced_accuracy_list += lin_n1
+    quartic_balanced_accuracy_list += quart_n1
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n, quad_n1, lin_n1  = get_data_from_folder("_3", edge_removal, threshold, n_threshold)
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n, quad_n1, lin_n1, quart_n1  = get_data_from_folder("_3", edge_removal, threshold, n_threshold)
     conductance_list += con_list
     og_balanced_accuracy_list += og_list
     v_balanced_accuracy_list += v_list
@@ -315,8 +323,9 @@ def get_data_from_all_folders(edge_removal, threshold, n_threshold):
     lowest_spectrum_balanced_accuracy_list += ls_list
     quadratic_balanced_accuracy_list += quad_n1
     linaer_balanced_accuracy_list += lin_n1
+    quartic_balanced_accuracy_list += quart_n1
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n, quad_n1, lin_n1 = get_data_from_folder("_4", edge_removal, threshold, n_threshold)
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n, quad_n1, lin_n1, quart_n1 = get_data_from_folder("_4", edge_removal, threshold, n_threshold)
     conductance_list += con_list
     og_balanced_accuracy_list += og_list
     v_balanced_accuracy_list += v_list
@@ -326,8 +335,9 @@ def get_data_from_all_folders(edge_removal, threshold, n_threshold):
     lowest_spectrum_balanced_accuracy_list += ls_list
     quadratic_balanced_accuracy_list += quad_n1
     linaer_balanced_accuracy_list += lin_n1
+    quartic_balanced_accuracy_list += quart_n1
 
-    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n, quad_n1, lin_n1  = get_data_from_folder("_5", edge_removal, threshold, n_threshold)
+    con_list, og_list, v_list, n_list, ls_list, inc_v, inc_n, quad_n1, lin_n1, quart_n1  = get_data_from_folder("_5", edge_removal, threshold, n_threshold)
     conductance_list += con_list
     og_balanced_accuracy_list += og_list
     v_balanced_accuracy_list += v_list
@@ -337,12 +347,13 @@ def get_data_from_all_folders(edge_removal, threshold, n_threshold):
     lowest_spectrum_balanced_accuracy_list += ls_list
     quadratic_balanced_accuracy_list += quad_n1
     linaer_balanced_accuracy_list += lin_n1
+    quartic_balanced_accuracy_list += quart_n1
 
-    return conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list, quadratic_balanced_accuracy_list, linaer_balanced_accuracy_list
+    return conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list, quadratic_balanced_accuracy_list, linaer_balanced_accuracy_list, quartic_balanced_accuracy_list
 
 
 def regression():
-    conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list, quadratic_balanced_accuracy_list, linear_balanced_accuracy_list = get_data_from_all_folders(edge_removal, threshold, n_threshold)
+    conductance_list, og_balanced_accuracy_list, v_balanced_accuracy_list, n_balanced_accuracy_list, lowest_spectrum_balanced_accuracy_list, increase_v_balanced_accuracy_list, increase_n_balanced_accuracy_list, quadratic_balanced_accuracy_list, linear_balanced_accuracy_list, quartic_balanced_accuracy_list = get_data_from_all_folders(edge_removal, threshold, n_threshold)
 
     if measurement == 'balanced_accuracy':
         ones = [1, 1, 1, 1, 1]
@@ -355,6 +366,7 @@ def regression():
         lowest_spectrum_balanced_accuracy_list = ones + lowest_spectrum_balanced_accuracy_list
         quadratic_balanced_accuracy_list = ones + quadratic_balanced_accuracy_list
         linear_balanced_accuracy_list = ones + linear_balanced_accuracy_list
+        quartic_balanced_accuracy_list = ones + quartic_balanced_accuracy_list
 
     elif measurement == 'spectrum_diff':
         zeros = [0, 0, 0, 0, 0]
@@ -367,15 +379,17 @@ def regression():
         lowest_spectrum_balanced_accuracy_list = zeros + lowest_spectrum_balanced_accuracy_list
         quadratic_balanced_accuracy_list = zeros + quadratic_balanced_accuracy_list
         linear_balanced_accuracy_list = zeros + linear_balanced_accuracy_list
+        quartic_balanced_accuracy_list = zeros + quartic_balanced_accuracy_list
 
     plot(plt, conductance_list, og_balanced_accuracy_list, "Original")
     # plot(plt, conductance_list, v_balanced_accuracy_list, f'Voting {edge_removal*10}% edges removed and {threshold} threshold')
+    plot(plt, conductance_list, linear_balanced_accuracy_list, f'Linear {edge_removal*10}% edges removed and {n_threshold} threshold')
     plot(plt, conductance_list, n_balanced_accuracy_list, f'Cubic {edge_removal*10}% edges removed and {n_threshold} threshold')
     # plot(plt, conductance_list, increase_v_balanced_accuracy_list, f'Voting {threshold}')
     # plot(plt, conductance_list, increase_n_balanced_accuracy_list, f'Neighborhood {n_threshold}')
     # plot(plt, conductance_list, lowest_spectrum_balanced_accuracy_list, "Lowest Spectrum")
     plot(plt, conductance_list, quadratic_balanced_accuracy_list, f'Quadratic {edge_removal*10}% edges removed and {n_threshold} threshold')
-    plot(plt, conductance_list, linear_balanced_accuracy_list, f'Linear {edge_removal*10}% edges removed and {n_threshold} threshold')
+    plot(plt, conductance_list, quartic_balanced_accuracy_list, f'Quartic {edge_removal*10}% edges removed and {n_threshold} threshold')
 
 
     plt.xlabel('Conductance')
