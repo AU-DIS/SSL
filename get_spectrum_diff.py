@@ -1,7 +1,7 @@
 import sys
 import os
 from problem.spectral_subgraph_localization import find_voting_majority, edgelist_to_adjmatrix
-from experiments_ssl import solution_graph, graph_edit_distance, use_graph_edit_distance_generator, enforce_cardinality_constraint_by_spectrum, spectrum_from_graph, spectrum_abs_diff
+from experiments_ssl import solution_graph, graph_edit_distance, use_graph_edit_distance_generator, enforce_cardinality_constraint_by_spectrum, spectrum_from_graph, spectrum_abs_diff, spectrum_square_diff
 from problem.dijkstra import DijkstraSolution
 import torch
 import networkx as nx
@@ -65,7 +65,7 @@ if __name__ == '__main__':
                             v = find_voting_majority(votes, experiments_to_make, threshold)
                             S = solution_graph(G, v)
                             spectrum = spectrum_from_graph(S)
-                            spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
+                            spectrum_diff = spectrum_square_diff(ref_spectrum, spectrum)
 
                             # Write it!
                             f = open(f"{folder}/spectrum_diff2_{threshold}.txt", "a+")
@@ -75,7 +75,7 @@ if __name__ == '__main__':
                             v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
                             S = solution_graph(G, v)
                             spectrum = spectrum_from_graph(S)
-                            spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
+                            spectrum_diff = spectrum_square_diff(ref_spectrum, spectrum)
 
                             # Write it!
                             f = open(f"{folder}/cc_spectrum_diff2_{threshold}.txt", "a+")
@@ -87,7 +87,7 @@ if __name__ == '__main__':
                             v = dijkstra.solution()
                             S = solution_graph(G, v)
                             spectrum = spectrum_from_graph(S)
-                            spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
+                            spectrum_diff = spectrum_square_diff(ref_spectrum, spectrum)
 
                             # Write it!
                             f = open(f"{folder}/n_spectrum_diff2_{threshold}.txt", "a+")
@@ -97,7 +97,7 @@ if __name__ == '__main__':
                             v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
                             S = solution_graph(G, v)
                             spectrum = spectrum_from_graph(S)
-                            spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
+                            spectrum_diff = spectrum_square_diff(ref_spectrum, spectrum)
 
                             # Write it!
                             f = open(f"{folder}/cc_n_spectrum_diff2_{threshold}.txt", "a+")
