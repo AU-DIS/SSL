@@ -15,7 +15,7 @@ if len(sys.argv) >= 3:
     per = sys.argv[2]
 
 if __name__ == '__main__':
-    rootdir = f'experiments_final/{graph}/{per}'
+    rootdir = f'experiments_final_5/{graph}/{per}'
     directories = []
 
     for file in os.listdir(rootdir):
@@ -63,15 +63,6 @@ if __name__ == '__main__':
                         # Find solutions for standard voting 
                         for threshold in thresholds:
                             v = find_voting_majority(votes, experiments_to_make, threshold)
-                            S = solution_graph(G, v)
-                            spectrum = spectrum_from_graph(S)
-                            spectrum_diff = spectrum_square_diff(ref_spectrum, spectrum)
-
-                            # Write it!
-                            f = open(f"{folder}/spectrum_diff2_{threshold}.txt", "a+")
-                            f.write(str([spectrum_diff]))
-
-                            # Do the same for cardiality constraint!
                             v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
                             S = solution_graph(G, v)
                             spectrum = spectrum_from_graph(S)
@@ -85,15 +76,6 @@ if __name__ == '__main__':
                         for threshold in thresholds:
                             dijkstra = DijkstraSolution(A, votes, experiments_to_make, "cubic", threshold, "constant", length_of_query)
                             v = dijkstra.solution()
-                            S = solution_graph(G, v)
-                            spectrum = spectrum_from_graph(S)
-                            spectrum_diff = spectrum_square_diff(ref_spectrum, spectrum)
-
-                            # Write it!
-                            f = open(f"{folder}/n_spectrum_diff2_{threshold}.txt", "a+")
-                            f.write(str([spectrum_diff]))
-
-                            # Do the same for cardiality constraint!
                             v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
                             S = solution_graph(G, v)
                             spectrum = spectrum_from_graph(S)
