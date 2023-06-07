@@ -164,7 +164,7 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
 
     if measurement == 'spectrum_diff':
         after = len(x)
-        print(f"Removed {before - after} out of {before} entries")
+        # print(f"Removed {before - after} out of {before} entries")
     
 
     x = np.array(x)
@@ -178,11 +178,11 @@ def plot(plt, conductance_list, balanced_accuracy_list, label, should_scatter = 
     residuals = y - p(x)
     residual_variance = np.var(residuals)
 
-    print(f"Variance of residuals for {label}:", residual_variance)
+    # print(f"Variance of residuals for {label}:", residual_variance)
     print(f'{np.round(z[0],4)}*x^2 + {np.round(z[1],4)}*x + {np.round(z[2],4)}')
     
     # if should_scatter:
-    plt.scatter(x, y)
+    # plt.scatter(x, y)
     plt.plot(x, p(x), label=label)
 
 def entry_averaging():
@@ -388,8 +388,8 @@ def plot_edge_removals():
 if __name__ == '__main__':
     # entry_averaging()
     # interval_averaging()
-    regression()
-    # plot_edge_removals()
+    # regression()
+    plot_edge_removals()
 
     
     plt.legend()
