@@ -48,7 +48,7 @@ if __name__ == '__main__':
                     ref_spectrum = spectrum_from_graph(Q)
                     length_of_query = len(Q.nodes())
 
-                    thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+                    thresholds = [0.2, 0.3, 0.4]
                     votes_string = votes_file.read().replace('])', '').replace('\n', '')
                     votes_list = []
                     for tensor in votes_string.split(']['):
@@ -68,7 +68,17 @@ if __name__ == '__main__':
                             spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
 
                             # Write it!
-                            f = open(f"{folder}/spectrum_diff_{threshold}.txt", "a+")
+                            f = open(f"{folder}/spectrum_diff2_{threshold}.txt", "a+")
+                            f.write(str([spectrum_diff]))
+
+                            # Do the same for cardiality constraint!
+                            v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
+                            S = solution_graph(G, v)
+                            spectrum = spectrum_from_graph(S)
+                            spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
+
+                            # Write it!
+                            f = open(f"{folder}/cc_spectrum_diff2_{threshold}.txt", "a+")
                             f.write(str([spectrum_diff]))
 
                         # Find solutions for neighborhood 
@@ -80,5 +90,15 @@ if __name__ == '__main__':
                             spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
 
                             # Write it!
-                            f = open(f"{folder}/n_spectrum_diff_{threshold}.txt", "a+")
+                            f = open(f"{folder}/n_spectrum_diff2_{threshold}.txt", "a+")
+                            f.write(str([spectrum_diff]))
+
+                            # Do the same for cardiality constraint!
+                            v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
+                            S = solution_graph(G, v)
+                            spectrum = spectrum_from_graph(S)
+                            spectrum_diff = spectrum_abs_diff(ref_spectrum, spectrum)
+
+                            # Write it!
+                            f = open(f"{folder}/cc_n_spectrum_diff2_{threshold}.txt", "a+")
                             f.write(str([spectrum_diff]))
