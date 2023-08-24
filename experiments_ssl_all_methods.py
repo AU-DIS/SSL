@@ -10,7 +10,7 @@ import networkx as nx
 import torch
 from problem.spectral_subgraph_localization import edgelist_to_adjmatrix
 from optimization.prox.prox import ProxSphere, ProxL21ForSymmetricCenteredMatrix
-from problem.spectral_subgraph_localization import SubgraphIsomorphismSolver, VotingSubgraphIsomorpishmSolver, VotingSubgraphIsomorpishmSolver, Solution_algo, lap_from_adj
+from problem.spectral_subgraph_localization import SubgraphIsomorphismSolver, VotingSubgraphIsomorpishmSolver, VotingSubgraphIsomorpishmSolver, Solution_algo
 import pickle
 import sys
 from copy import deepcopy
@@ -68,7 +68,7 @@ def spectrum_from_graph(G):
 # If |X| < |Y|, the last eigenvalue of G2 is copied, untill the length of both lists are of same length.
 def spectrum_abs_diff(X, Y):
     if len(X) > len(Y):
-        return 999999
+        print('yes') # return 999999
 
     eigenvalues_to_compare = min(len(X), len(Y)) # If 
     Y = Y[:eigenvalues_to_compare]
@@ -77,18 +77,16 @@ def spectrum_abs_diff(X, Y):
 
 def spectrum_square_diff(X, Y):
     if len(X) > len(Y):
-        n = len(X)-len(Y)
 
+        n = len(X)-len(Y)
         listofzeros = [0] * n
         listofzeros = torch.tensor(listofzeros)
         Y = torch.cat(listofzeros, Y)
-
-        #print(len(X), len(Y))
-
+   
     eigenvalues_to_compare = min(len(X), len(Y)) # If 
     Y = Y[:eigenvalues_to_compare]
     X = X[:eigenvalues_to_compare]
-
+    #print(torch.sqrt(torch.sum(torch.square(torch.sub(X, Y)))).item())
     return torch.sum(torch.square(torch.sub(X, Y))).item()
 
 def greedy_remove_node_by_spectrum(G, solution_vector, ref_spectrum):
@@ -289,7 +287,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
 
     problem_params = {'mu_spectral': 1,
                       'mu_l21': 0,
-                      'mu_MS': 0,# / (c ** 2), #The μ regularizer eq. 11 TODO NO REGULARIZER!
+                      'mu_MS': mu,# / (c ** 2), #The μ regularizer eq. 11
                       'mu_split': 0,
                       'mu_trace': 0.0,
                       'trace_val': 0,
@@ -316,10 +314,6 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     subgraph_isomorphism_solver = SubgraphIsomorphismSolver(A, ref_spectrum, problem_params, solver_params)
     v, E = \
         subgraph_isomorphism_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
-
-    Hamiltonian = L + E + torch.diag(v)
-    og_spectrum = torch.linalg.eigvalsh(Hamiltonian)
-
     v_binary, E_binary = subgraph_isomorphism_solver.threshold(v_np=v.detach().numpy())
     
     gt_inidicator = v_gt
@@ -339,7 +333,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
 
     # og_ged_generator = graph_edit_distance(Q, S)
     # og_ged = use_graph_edit_distance_generator(og_ged_generator, "OG")
-    # og_spectrum = spectrum_from_graph(S)
+    og_spectrum = spectrum_from_graph(S)
     og_spectrum_diff = spectrum_square_diff(ref_spectrum, og_spectrum)
     # print("Og diff:", og_spectrum_diff)
     # print("Og balanced acc:", original_balanced)
@@ -348,7 +342,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     nodes_in_solution = count_nodes(v_binary)
     # print("Nodes in solution:", nodes_in_solution)
 
-    experiments_to_make = 0
+    experiments_to_make = 30
 
     random_solver = VotingSubgraphIsomorpishmSolver(A, ref_spectrum, problem_params, solver_params, v_gt, A_sub, experiments_to_make=experiments_to_make, edge_removal=edge_removal) # Faked original balanced accuracy, can probably delete anyway
     # v_randomized, _ = random_solver.solve(max_outer_iters=3,max_inner_iters=500, show_iter=10000, verbose=False)
@@ -356,9 +350,149 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
 
     standard_voting_results = []
     standard_voting_results_with_cardinality_constraint = []
+    for threshold in standard_voting_thresholds:
+        v, _ = random_solver.find_solution(A, votes, experiments_to_make, Solution_algo.THRESHOLD, threshold = threshold)
+        v_accuracy = accur(v_gt, v.clone().detach().numpy())
+        v_balanced_accuracy = balanced_acc(v_gt, v.clone().detach().numpy())
+        v_recall = recall(v_gt, v.clone().detach().numpy())
+        v_precision = precision(v_gt, v.clone().detach().numpy())
+        v_fscore = f1(v_gt, v.clone().detach().numpy())
+
+        S = solution_graph(G, v)
+        # v_ged_generator = graph_edit_distance(Q, S)
+        # v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Standard with threshold: {threshold}')
+
+        # print(f'Standard voting with threshold: {threshold}')
+        v_spectrum = spectrum_from_graph(S)
+        v_spectrum_diff = spectrum_square_diff(ref_spectrum, v_spectrum)
+
+        # print("v diff:", v_spectrum_diff)
+        # print("v balanced:", v_balanced_accuracy)
+        # print("v fscore:", v_fscore)
+
+        nodes_in_solution = count_nodes(v)
+        # print("Nodes in solution:", nodes_in_solution)
+
+        standard_voting_results.append({
+                "threshold": threshold,
+                "acc": v_accuracy,
+                "balanced_acc": v_balanced_accuracy,
+                "recall": v_recall,
+                "precision": v_precision,
+                "f1": v_fscore,
+                # "graph_edit_distance": v_ged,
+                "spectrum": v_spectrum.tolist(),
+                "spectrum_diff": v_spectrum_diff
+            })
+
+        # Do the same with cardinality constraint enforced!
+        # print("enforcing cardinality constraint")
+        v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
+        v_accuracy = accur(v_gt, v)
+        v_balanced_accuracy = balanced_acc(v_gt, v)
+        v_recall = recall(v_gt, v)
+        v_precision = precision(v_gt, v)
+        v_fscore = f1(v_gt, v)
+
+        S = solution_graph(G, v)
+        # v_ged_generator = graph_edit_distance(Q, S)
+        # v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Standard with threshold: {threshold}')
+
+        # print(f'Standard voting with threshold: {threshold} AND cardinality constraint enforced')
+        v_spectrum = spectrum_from_graph(S)
+        v_spectrum_diff = spectrum_square_diff(ref_spectrum, v_spectrum)
+
+        # print("v diff:", v_spectrum_diff)
+        # print("v balanced:", v_balanced_accuracy)
+        # print("v fscore:", v_fscore)
+
+        nodes_in_solution = count_nodes(v)
+        # print("Nodes in solution:", nodes_in_solution)
+
+        standard_voting_results_with_cardinality_constraint.append({
+                "threshold": threshold,
+                "acc": v_accuracy,
+                "balanced_acc": v_balanced_accuracy,
+                "recall": v_recall,
+                "precision": v_precision,
+                "f1": v_fscore,
+                # "graph_edit_distance": v_ged,
+                "spectrum": v_spectrum.tolist(),
+                "spectrum_diff": v_spectrum_diff
+            })
 
     neighborhood_results = []
     neighborhood_results_with_cardinality_constraint = []
+    for threshold in neighborhood_thresholds:
+        v, _ = random_solver.find_solution(A, votes, experiments_to_make, Solution_algo.DIJKSTRA, threshold_percentage = threshold)
+        v_accuracy = accur(v_gt, v.clone().detach().numpy())
+        v_balanced_accuracy = balanced_acc(v_gt, v.clone().detach().numpy())
+        v_recall = recall(v_gt, v.clone().detach().numpy())
+        v_precision = precision(v_gt, v.clone().detach().numpy())
+        v_fscore = f1(v_gt, v.clone().detach().numpy())
+        
+        S = solution_graph(G, v)
+        # v_ged_generator = graph_edit_distance(Q, S)
+        # v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Neighborhood with threshold: {threshold}')
+
+        v_spectrum = spectrum_from_graph(S)
+        # print(f'Neighborhood with threshold: {threshold}')
+        v_spectrum_diff = spectrum_square_diff(ref_spectrum, v_spectrum)
+
+        # print("v diff:", v_spectrum_diff)
+        # print("v balanced:", v_balanced_accuracy)
+        # print("v fscore:", v_fscore)
+
+        nodes_in_solution = count_nodes(v)
+        # print("Nodes in solution:", nodes_in_solution)
+
+        neighborhood_results.append({
+                "threshold": threshold,
+                "acc": v_accuracy,
+                "balanced_acc": v_balanced_accuracy,
+                "recall": v_recall,
+                "precision": v_precision,
+                "f1": v_fscore,
+                # "graph_edit_distance": v_ged,
+                "spectrum": v_spectrum.tolist(),
+                "spectrum_diff": v_spectrum_diff
+            })
+
+        # Now doing the same for neighborhood with cardinality constraint!
+        # print("enforcing cardinality constraint")
+        v = enforce_cardinality_constraint_by_spectrum(G, v, ref_spectrum)
+        v_accuracy = accur(v_gt, v)
+        v_balanced_accuracy = balanced_acc(v_gt, v)
+        v_recall = recall(v_gt, v)
+        v_precision = precision(v_gt, v)
+        v_fscore = f1(v_gt, v)
+        
+        S = solution_graph(G, v)
+        # v_ged_generator = graph_edit_distance(Q, S)
+        # v_ged = use_graph_edit_distance_generator(v_ged_generator, f'Neighborhood with threshold: {threshold}')
+
+        v_spectrum = spectrum_from_graph(S)
+        print(f'Neighborhood with threshold: {threshold} and cardinality constraint enforced')
+        v_spectrum_diff = spectrum_square_diff(ref_spectrum, v_spectrum)
+
+        print("v diff:", v_spectrum_diff)
+        print("v balanced:", v_balanced_accuracy)
+        print("v fscore:", v_fscore)
+
+        nodes_in_solution = count_nodes(v)
+        print("Nodes in solution:", nodes_in_solution)
+
+        neighborhood_results_with_cardinality_constraint.append({
+                "threshold": threshold,
+                "acc": v_accuracy,
+                "balanced_acc": v_balanced_accuracy,
+                "recall": v_recall,
+                "precision": v_precision,
+                "f1": v_fscore,
+                # "graph_edit_distance": v_ged,
+                "spectrum": v_spectrum.tolist(),
+                "spectrum_diff": v_spectrum_diff
+            })
 
     og_results = {
                 "acc": original_accuracy,
@@ -483,6 +617,7 @@ def find_best_mu(edgefile,part_nodes):
 if __name__ == '__main__':
 
     #graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
+    
     dataset = sys.argv[1]
     percentage_lower_bound = int(sys.argv[2])
     percentage_upper_bound = int(sys.argv[3])
@@ -490,7 +625,6 @@ if __name__ == '__main__':
     edge_removal = float(sys.argv[5])
     folder_number = int(sys.argv[6])
     graph_names = [dataset]
-
 
     standard_voting_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     neighborhood_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
@@ -598,6 +732,8 @@ if __name__ == '__main__':
                         edge_removals.append(edge_removal)
                         all_votes.append(votes)
                         ground_truth.append(v_gt)
+                        f = open(f'{abs_file_path}/ref_spectrum.txt', 'a+')
+                        f.write(str(ref_spectrum))
                         # res_dict[graph_name][(int(per*100))][condac] = [acc, bal_acc, 0.2]
                         for result in standard_voting_results:
                             threshold = result["threshold"]
@@ -684,9 +820,171 @@ if __name__ == '__main__':
                 script_dir = os.path.dirname(__file__)
                 abs_file_path = os.path.join(script_dir, rel_path)
                 
-                # Write for original results
-                f = open(f'{abs_file_path}/og_spectrum_diff_no_threshold_abs.txt', 'a+')
-                f.write(str(og_spectrum_diff))
+                f = open(f'{abs_file_path}/conductance.txt', 'a+')
+                f.write(str(conductances))
 
-                f = open(f'{abs_file_path}/og_balanced_accuracy_no_threshold_abs.txt', 'a+')
+                f = open(f'{abs_file_path}/edge_removal.txt', 'a+')
+                f.write(str(edge_removals))
+
+                f = open(f'{abs_file_path}/votes', 'a+')
+                f.write(str(all_votes))
+
+                f = open(f'{abs_file_path}/ground_truth', 'a+')
+                f.write(str(ground_truth))
+
+                # Writing data for standard voting
+                for threshold, values in standard_voting_balanced_accuracies.items():
+                    f = open(f'{abs_file_path}/balanced_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in standard_voting_accuracies.items():
+                    f = open(f'{abs_file_path}/accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in standard_voting_recalls.items():
+                    f = open(f'{abs_file_path}/recall_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in standard_voting_precisions.items():
+                    f = open(f'{abs_file_path}/precision_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in standard_voting_f1s.items():
+                    f = open(f'{abs_file_path}/f1_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in standard_voting_ged.items():
+                    f = open(f'{abs_file_path}/ged_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in standard_voting_spectrum.items():
+                    f = open(f'{abs_file_path}/spectrum_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in standard_voting_spectrum_diff.items():
+                    f = open(f'{abs_file_path}/spectrum_diff_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                # Writing data for standard voting with cardinality constraint
+                for threshold, values in cc_standard_voting_balanced_accuracies.items():
+                    f = open(f'{abs_file_path}/cc_balanced_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_standard_voting_accuracies.items():
+                    f = open(f'{abs_file_path}/cc_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_standard_voting_recalls.items():
+                    f = open(f'{abs_file_path}/cc_recall_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_standard_voting_precisions.items():
+                    f = open(f'{abs_file_path}/cc_precision_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_standard_voting_f1s.items():
+                    f = open(f'{abs_file_path}/cc_f1_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_standard_voting_ged.items():
+                    f = open(f'{abs_file_path}/cc_ged_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_standard_voting_spectrum.items():
+                    f = open(f'{abs_file_path}/cc_spectrum_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_standard_voting_spectrum_diff.items():
+                    f = open(f'{abs_file_path}/cc_spectrum_diff_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                # Write results for neighborhood
+                for threshold, values in neighborhood_balanced_accuracies.items():
+                    f = open(f'{abs_file_path}/n_balanced_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in neighborhood_accuracies.items():
+                    f = open(f'{abs_file_path}/n_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in neighborhood_recalls.items():
+                    f = open(f'{abs_file_path}/n_recall_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in neighborhood_precisions.items():
+                    f = open(f'{abs_file_path}/n_precision_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in neighborhood_f1s.items():
+                    f = open(f'{abs_file_path}/n_f1_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in neighborhood_ged.items():
+                    f = open(f'{abs_file_path}/n_ged_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in neighborhood_spectrum.items():
+                    f = open(f'{abs_file_path}/n_spectrum_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in neighborhood_spectrum_diff.items():
+                    f = open(f'{abs_file_path}/n_spectrum_diff_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                # Write results for neighborhood with cardinality constraint
+                for threshold, values in cc_neighborhood_balanced_accuracies.items():
+                    f = open(f'{abs_file_path}/cc_n_balanced_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_neighborhood_accuracies.items():
+                    f = open(f'{abs_file_path}/cc_n_accuracy_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_neighborhood_recalls.items():
+                    f = open(f'{abs_file_path}/cc_n_recall_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_neighborhood_precisions.items():
+                    f = open(f'{abs_file_path}/cc_n_precision_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_neighborhood_f1s.items():
+                    f = open(f'{abs_file_path}/cc_n_f1_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_neighborhood_ged.items():
+                    f = open(f'{abs_file_path}/cc_n_ged_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_neighborhood_spectrum.items():
+                    f = open(f'{abs_file_path}/cc_n_spectrum_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                for threshold, values in cc_neighborhood_spectrum_diff.items():
+                    f = open(f'{abs_file_path}/cc_n_spectrum_diff_{threshold}.txt', 'a+')
+                    f.write(str(values))
+
+                # Write for original results
+                f = open(f'{abs_file_path}/og_balanced_accuracy.txt', 'a+')
                 f.write(str(og_balanced_accuracies))
+
+                f = open(f'{abs_file_path}/og_accuracy.txt', 'a+')
+                f.write(str(og_accuracies))
+
+                f = open(f'{abs_file_path}/og_recall.txt', 'a+')
+                f.write(str(og_recalls))
+
+                f = open(f'{abs_file_path}/og_precision.txt', 'a+')
+                f.write(str(og_precisions))
+
+                f = open(f'{abs_file_path}/og_f1.txt', 'a+')
+                f.write(str(og_f1s))
+
+                f = open(f'{abs_file_path}/og_ged.txt', 'a+')
+                f.write(str(og_ged))
+
+                f = open(f'{abs_file_path}/og_spectrum.txt', 'a+')
+                f.write(str(og_spectrum))
+
+                f = open(f'{abs_file_path}/og_spectrum_diff.txt', 'a+')
+                f.write(str(og_spectrum_diff))
