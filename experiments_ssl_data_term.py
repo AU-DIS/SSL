@@ -59,7 +59,7 @@ def solution_graph(G, solution_vector):
     return S
 
 def spectrum_from_graph(G):
-    A = torch.tensor(nx.to_numpy_matrix(G))
+    A = torch.tensor(nx.to_numpy_array(G))
     D = torch.diag(A.sum(dim=1))
     L = D - A
     return torch.linalg.eigvalsh(L)
@@ -77,7 +77,13 @@ def spectrum_abs_diff(X, Y):
 
 def spectrum_square_diff(X, Y):
     if len(X) > len(Y):
-        return 999999
+        n = len(X)-len(Y)
+
+        listofzeros = [0] * n
+        listofzeros = torch.tensor(listofzeros)
+        Y = torch.cat((listofzeros, Y))
+
+        #print(len(X), len(Y))
 
     eigenvalues_to_compare = min(len(X), len(Y)) # If 
     Y = Y[:eigenvalues_to_compare]
@@ -100,7 +106,7 @@ def greedy_remove_node_by_spectrum_aux(G, solution_indices, ref_spectrum):
         new_solution_indices.remove(idx)
         new_solution = G.subgraph(new_solution_indices)
         new_spectrum = spectrum_from_graph(new_solution)
-        new_spectrum_diff = spectrum_abs_diff(ref_spectrum, new_spectrum)
+        new_spectrum_diff = spectrum_square_diff(ref_spectrum, new_spectrum)
         if new_spectrum_diff < smallest_spectrum_diff:
             smallest_spectrum_diff = new_spectrum_diff
             best_idx_to_remove = idx
@@ -124,7 +130,7 @@ def greedy_add_node_by_spectrum_v2_aux(G, solution_indices, remaining_indices, r
         new_solution_indices.append(idx)
         new_solution = G.subgraph(new_solution_indices)
         new_spectrum = spectrum_from_graph(new_solution)
-        new_spectrum_diff = spectrum_abs_diff(ref_spectrum, new_spectrum)
+        new_spectrum_diff = spectrum_square_diff(ref_spectrum, new_spectrum)
         if new_spectrum_diff < smallest_spectrum_diff:
             smallest_spectrum_diff = new_spectrum_diff
             best_idx_to_add = idx
@@ -239,8 +245,8 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
 
     # print(f'Reading from {edgefile}')
     A1=edgelist_to_adjmatrix(edgefile)
-    G=nx.from_numpy_matrix(A1)
-    A = torch.tensor(nx.to_numpy_matrix(G))
+    G=nx.from_numpy_array(A1)
+    A = torch.tensor(nx.to_numpy_array(G))
 
     n1 = len(part_nodes)
     n = len(G.nodes)
@@ -267,7 +273,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     A_sub = A[:,part_nodes]
     A_sub=A_sub[part_nodes,:]
 
-    Q = nx.from_numpy_matrix(A_sub.clone().detach().numpy())
+    Q = nx.from_numpy_array(A_sub.clone().detach().numpy())
 
     D_sub = torch.diag(A_sub.sum(dim=1))
     L_sub = D_sub - A_sub
@@ -334,7 +340,7 @@ def run_opt(edgefile,part_nodes, mu=1, standard_voting_thresholds=[], neighborho
     # og_ged_generator = graph_edit_distance(Q, S)
     # og_ged = use_graph_edit_distance_generator(og_ged_generator, "OG")
     # og_spectrum = spectrum_from_graph(S)
-    og_spectrum_diff = spectrum_abs_diff(ref_spectrum, og_spectrum)
+    og_spectrum_diff = spectrum_square_diff(ref_spectrum, og_spectrum)
     # print("Og diff:", og_spectrum_diff)
     # print("Og balanced acc:", original_balanced)
     # print("Og f1:", og_fscore)
@@ -374,8 +380,8 @@ def count_nodes(v_binary):
 def find_best_mu(edgefile,part_nodes):
     # print(f'Reading from {edgefile}')
     A1=edgelist_to_adjmatrix(edgefile)
-    G=nx.from_numpy_matrix(A1)
-    A = torch.tensor(nx.to_numpy_matrix(G))
+    G=nx.from_numpy_array(A1)
+    A = torch.tensor(nx.to_numpy_array(G))
 
     n1 = len(part_nodes)
     n = len(G.nodes)
@@ -477,13 +483,14 @@ def find_best_mu(edgefile,part_nodes):
 if __name__ == '__main__':
 
     #graph_names = ['ant', 'football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
-    
     dataset = sys.argv[1]
     percentage_lower_bound = int(sys.argv[2])
     percentage_upper_bound = int(sys.argv[3])
     per = float(sys.argv[4])
     edge_removal = float(sys.argv[5])
+    folder_number = int(sys.argv[6])
     graph_names = [dataset]
+
 
     standard_voting_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     neighborhood_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
@@ -500,8 +507,8 @@ if __name__ == '__main__':
         best_mu = {}
         best_m_par = 0
         counter_m_par = 0
-        folder_amount = 5
-        for folder_no in range(folder_amount - 1, folder_amount):
+        folder_amount = folder_number
+        for folder_no in range(folder_amount , folder_amount + 1):
             if use_global_mu and folder_no==0: continue
             # perc = [0.1, 0.2, 0.3]
             clcr = [i/10.0 for i in range(percentage_lower_bound, percentage_upper_bound)]
@@ -566,7 +573,7 @@ if __name__ == '__main__':
                 ground_truth = []
 
                 script_dir = os.path.dirname(__file__)
-                rel_path = f'experiments_final_4/{graph_name}/{per}/{lr*100}'
+                rel_path = f'experiments_final{folder_number}/{graph_name}/{per}/{lr*100}'
                 Path(rel_path).mkdir(parents=True, exist_ok=True)
                 abs_file_path = os.path.join(script_dir, rel_path)
                 if folder_no == 0: 
@@ -672,7 +679,7 @@ if __name__ == '__main__':
                         # og_ged.append(og_results["graph_edit_distance"])
 
                        # Write results for standard voting 
-                rel_path = f'experiments_final_4/{graph_name}/{per}/{lr*100}'
+                rel_path = f'experiments_final{folder_number}/{graph_name}/{per}/{lr*100}'
                 Path(rel_path).mkdir(parents=True, exist_ok=True)
                 script_dir = os.path.dirname(__file__)
                 abs_file_path = os.path.join(script_dir, rel_path)
@@ -680,3 +687,6 @@ if __name__ == '__main__':
                 # Write for original results
                 f = open(f'{abs_file_path}/og_spectrum_diff_no_threshold_abs.txt', 'a+')
                 f.write(str(og_spectrum_diff))
+
+                f = open(f'{abs_file_path}/og_balanced_accuracy_no_threshold_abs.txt', 'a+')
+                f.write(str(og_balanced_accuracies))
