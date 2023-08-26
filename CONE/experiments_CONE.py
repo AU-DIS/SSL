@@ -2,6 +2,8 @@ import numpy as np
 import sklearn.metrics.pairwise
 
 import networkx as nx
+import torch
+
 try: import pickle as pickle
 except ImportError:
     import pickle
@@ -14,8 +16,10 @@ import unsup_align
 import embedding
 from pathlib import Path
 import os
+import sys
 
-#from functionalMaps_nn import *
+per = 0.1
+folder_number = 6
 
 
 def edgelist_to_adjmatrix(edgeList_file):
@@ -182,7 +186,10 @@ def get_counterpart(alignment_matrix, true_alignments, part_nodes):
     else:
         f1 = 2 * precision * recall / (precision + recall)
     print(precision, recall, f1)
-    return balanced_accuracy, accuracy, f1
+
+    solution = list(set().union(correct_0_nodes, incorrect_1_nodes))
+
+    return balanced_accuracy, accuracy, f1, solution
 
 
 def kd_align(emb1, emb2, normalize=False, distance_metric="euclidean", num_top=10):
@@ -202,10 +209,32 @@ def kd_align(emb1, emb2, normalize=False, distance_metric="euclidean", num_top=1
     sparse_align_matrix = coo_matrix((data, (row, col)), shape=(emb1.shape[0], emb2.shape[0]))
     return sparse_align_matrix.tocsr()
 
+def spectrum_from_graph(G):
+    A = torch.tensor(nx.to_numpy_array(G))
+    D = torch.diag(A.sum(dim=1))
+    L = D - A
+    return torch.linalg.eigvalsh(L)
 
-def main(args):
-    import os
-    graph_names = ['football', 'highschool', 'malaria', 'powerlaw_200_50_50', 'renyi_200_50', 'barabasi_200_50']
+
+def spectrum_square_diff(X, Y):
+    if len(X) > len(Y):
+
+        n = len(X)-len(Y)
+        listofzeros = [0] * n
+        listofzeros = torch.tensor(listofzeros)
+        Y = torch.cat(listofzeros, Y)
+
+    eigenvalues_to_compare = min(len(X), len(Y)) # If 
+    Y = Y[:eigenvalues_to_compare]
+    X = X[:eigenvalues_to_compare]
+
+    return torch.sum(torch.square(torch.sub(X, Y))).item()
+
+
+def experiments(args, per, folder_number):
+    
+    graph_names = ['football', 'highschool', 'malaria',  'renyi_200_50', 'barabasi_200_50']
+
     for graphname in graph_names:
         res_dict={}
         res_dict[graphname] = {}
@@ -213,78 +242,88 @@ def main(args):
         conductances = []
         accuracies = []
         f1s = []
-        for nofolder in range(2, 6):
-            subsizes = [0.1, 0.2, 0.3]
-            pers = [i/10.0 for i in range(1,11)]
-            for subsize in subsizes:
-                res_dict[graphname][int(subsize*100)] = {}
-                for per in pers: 
-                    edge_list_G1 = f'./data/{graphname}/{int(subsize*100)}/{nofolder}/{graphname}_{int(subsize*100)}_{int(per*100)}.txt'
-                    print(f'************* Reading file {edge_list_G1}')
-                    partfile = f'./data/{graphname}/{int(subsize*100)}/{nofolder}/{graphname}_{int(subsize*100)}_nodes.txt'
-                    part_nodes=np.loadtxt(partfile)
+        spectrum_diff = []
+        #for nofolder in range(2, 6):
+        nofolder = folder_number
+        subsize = per
+        #subsizes = [0.1, 0.2, 0.3]
+        pers = [i/10.0 for i in range(1,11)]
+        #for subsize in subsizes:
+        res_dict[graphname][int(subsize*100)] = {}
+        for per in pers: 
+            edge_list_G1 = f'./data/{graphname}/{int(subsize*100)}/{nofolder}/{graphname}_{int(subsize*100)}_{int(per*100)}.txt'
+            print(f'************* Reading file {edge_list_G1}')
+            partfile = f'./data/{graphname}/{int(subsize*100)}/{nofolder}/{graphname}_{int(subsize*100)}_nodes.txt'
+            part_nodes=np.loadtxt(partfile)
 
 
 
-                    adjA = edgelist_to_adjmatrix(edge_list_G1)
-                    G_full=nx.from_numpy_array(adjA)
+            adjA = edgelist_to_adjmatrix(edge_list_G1)
+            G_full=nx.from_numpy_array(adjA)
                     
-                    print(G_full.number_of_nodes(), G_full.number_of_edges())
+            print(G_full.number_of_nodes(), G_full.number_of_edges())
                                         
-                    G_part=nx.induced_subgraph(G_full,part_nodes)
-                    condac = nx.conductance(G_full, part_nodes)
+            G_part=nx.induced_subgraph(G_full,part_nodes)
+            condac = nx.conductance(G_full, part_nodes)
+            adjB_cur=nx.to_numpy_array(G_part)
+            adjB=np.zeros(np.shape(adjA))
 
-                    adjB_cur=nx.to_numpy_array(G_part)
-                    adjB=np.zeros(np.shape(adjA))
-
-                    for row in range(np.shape(adjB_cur)[0]):
-                        for col in range(np.shape(adjB_cur)[0]):
-                            adjB[row,col]=adjB_cur[row,col]
+            for row in range(np.shape(adjB_cur)[0]):
+                for col in range(np.shape(adjB_cur)[0]):
+                    adjB[row,col]=adjB_cur[row,col]
 
 
                     # step1: obtain normalized proximity-preserving node embeddings
-                    if (args.embmethod == "netMF"):
-                        flag = True
-                        while flag:
-                            try:
-                                emb_matrixA = embedding.netmf(adjA, dim = min(128, np.shape(adjB)[0]-1), window=args.window, b=args.negative, normalize=True)
-                                flag = False
-                            except:
-                                print("An exception occurred")
-                        flag = True
-                        while flag:
-                            try:
-                                emb_matrixB = embedding.netmf(adjB, dim = min(128, np.shape(adjB)[0]-1), window=args.window, b=args.negative, normalize=True)
-                                flag = False
-                            except:
-                                print("An exception occurred")
+            if (args.embmethod == "netMF"):
+                flag = True
+                while flag:
+                    try:
+                        emb_matrixA = embedding.netmf(adjA, dim = min(128, np.shape(adjB)[0]-1), window=args.window, b=args.negative, normalize=True)
+                        flag = False
+                    except:
+                        print("An exception occurred")
+                flag = True
+                while flag:
+                    try:
+                        emb_matrixB = embedding.netmf(adjB, dim = min(128, np.shape(adjB)[0]-1), window=args.window, b=args.negative, normalize=True)
+                        flag = False
+                    except:
+                        print("An exception occurred")
                         #emb_matrixA = embedding.netmf(adjA, dim = min(100, np.shape(adjB)[0]-1), window=args.window, b=args.negative, normalize=True)
                         #emb_matrixB = embedding.netmf(adjB, dim = min(100, np.shape(adjB)[0]-1), window=args.window, b=args.negative, normalize=True)
-                        after_emb = time.time()
-                        if (args.store_emb):
-                            np.save(args.embeddingA, emb_matrixA, allow_pickle=False)
-                            np.save(args.embeddingB, emb_matrixB, allow_pickle=False)
+                after_emb = time.time()
+                if (args.store_emb):
+                    np.save(args.embeddingA, emb_matrixA, allow_pickle=False)
+            
+                    np.save(args.embeddingB, emb_matrixB, allow_pickle=False)
 
                         # step2 and 3: align embedding spaces and match nodes with similar embeddings
-                        alignment_matrix = align_embeddings(emb_matrixA, emb_matrixB, adj1=csr_matrix(adjA), adj2=csr_matrix(adjB), struc_embed=None, struc_embed2=None)
-
+                alignment_matrix = align_embeddings(emb_matrixA, emb_matrixB, adj1=csr_matrix(adjA), adj2=csr_matrix(adjB), struc_embed=None, struc_embed2=None)
+    
+                ref_spectrum = spectrum_from_graph(G_part)
 
                         # evaluation
-                        true_align = None
-                        balanced_accuracy, accuracy, f1 = get_counterpart(alignment_matrix, true_align, part_nodes)
-                        print("Accuracy of CONE-align: %f" % accuracy)
-                        print("Balanced Accuracy of CONE-align: %f" % balanced_accuracy)
-                        print("f1 of CONE-align: %f" % f1)
+                true_align = None
+                balanced_accuracy, accuracy, f1, soln = get_counterpart(alignment_matrix, true_align, part_nodes)
+                print("Accuracy of CONE-align: %f" % accuracy)
+                print("Balanced Accuracy of CONE-align: %f" % balanced_accuracy)
+                print("f1 of CONE-align: %f" % f1)
+                #print("spectrum_diff: %f" % og_spectrum_diff)
 
-                        balanced_accuracies.append(balanced_accuracy)
-                        accuracies.append(accuracy)
-                        f1s.append(f1)
-                        conductances.append(condac)
+                G_solution =  nx.induced_subgraph(G_full, soln)
+                sol_spectrum = spectrum_from_graph(G_solution)
 
-                        res_dict[graphname][(int(subsize*100))][condac] = [accuracy, balanced_accuracy, f1]
+                og_spectrum_diff = spectrum_square_diff(ref_spectrum, sol_spectrum)
+                balanced_accuracies.append(balanced_accuracy)
+                accuracies.append(accuracy)
+                f1s.append(f1)
+                conductances.append(condac)
+                spectrum_diff.append(og_spectrum_diff)
+
+                res_dict[graphname][(int(subsize*100))][condac] = [accuracy, balanced_accuracy, f1]
                 
-                
-                rel_path = f'experiments/{graphname}/{subsize}'
+
+                rel_path = f'experiments{folder_number}/{graphname}/{subsize}'
                 Path(rel_path).mkdir(parents=True, exist_ok=True)
                 script_dir = os.path.dirname(__file__)
                 abs_file_path = os.path.join(script_dir, rel_path)
@@ -298,6 +337,8 @@ def main(args):
                 f.write(str(f1s))
                 f = open(f'{abs_file_path}/conductances.txt', 'w')
                 f.write(str(conductances))
+                f = open(f'{abs_file_path}/spectrum_diff.txt', 'w')
+                f.write(str(spectrum_diff))
                     
             
             if True:
@@ -320,4 +361,4 @@ def main(args):
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args)
+    experiments(args, per, folder_number)
