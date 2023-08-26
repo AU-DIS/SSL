@@ -43,5 +43,8 @@ python3 experiments_spectrum.py
 **Convert PKL to CSV format**\
 python3 pkl_to_csv.py
 
+**SSL data to CSV format**\
+python3 plot_average_spectrum_diff.py football 0.1 0.2 0.2 3 balanced_accuracy
+
 **CONE data to CSV format**\
 python3 plot_CONE.py football 0.1
