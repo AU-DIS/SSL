@@ -4,15 +4,15 @@ import os
 
 import numpy as np
 from problem.spectral_subgraph_localization import find_voting_majority, edgelist_to_adjmatrix
-from experiments_ssl import balanced_acc, f1, solution_graph, graph_edit_distance, spectrum_abs_diff, use_graph_edit_distance_generator, enforce_cardinality_constraint_by_spectrum, spectrum_from_graph, spectrum_square_diff
+from experiments_ssl_data_term import balanced_acc, f1, solution_graph, graph_edit_distance,  use_graph_edit_distance_generator, enforce_cardinality_constraint_by_spectrum, spectrum_from_graph, spectrum_square_diff
 from problem.dijkstra import DijkstraSolution
 import torch
 import networkx as nx
 
 graph = 'football'
 per = '0.1'
-folder_suffix = ''
-experiments_to_make = 150
+folder_suffix = '9'
+experiments_to_make = 30
 
 if len(sys.argv) >= 2:
     graph = sys.argv[1]
@@ -44,8 +44,8 @@ if __name__ == '__main__':
                     ext = str(int(per*100))+"_"+str(int(lr))
                     edgefile = './data/'+graph+'/'+str(int(per*100))+'/1/'+graph+'_'+ext+'.txt'
                     A1=edgelist_to_adjmatrix(edgefile)
-                    G=nx.from_numpy_matrix(A1)
-                    A = torch.tensor(nx.to_numpy_matrix(G))
+                    G=nx.from_numpy_array(A1)
+                    A = torch.tensor(nx.to_numpy_array(G))
                     n = len(G.nodes())
 
                     gt_string = gt_file.read().replace('])','').replace('\n','')
@@ -84,7 +84,7 @@ if __name__ == '__main__':
                         S = solution_graph(G, v)
 
                         cc_v_spectrum = spectrum_from_graph(S)
-                        cc_v_spectrum_diff = spectrum_abs_diff(ref_spectrum, cc_v_spectrum)
+                        cc_v_spectrum_diff = spectrum_square_diff(ref_spectrum, cc_v_spectrum)
 
                         cc_v_balanced_accuracy = balanced_acc(gt, v)
 
@@ -112,7 +112,7 @@ if __name__ == '__main__':
                         S = solution_graph(G, v)
 
                         cc_v_spectrum = spectrum_from_graph(S)
-                        cc_v_spectrum_diff = spectrum_abs_diff(ref_spectrum, cc_v_spectrum)
+                        cc_v_spectrum_diff = spectrum_square_diff(ref_spectrum, cc_v_spectrum)
 
                         cc_v_balanced_accuracy = balanced_acc(gt, v)
 
