@@ -81,7 +81,7 @@ def spectrum_square_diff(X, Y):
 
         listofzeros = [0] * n
         listofzeros = torch.tensor(listofzeros)
-        Y = torch.cat(listofzeros, Y)
+        Y = torch.cat((listofzeros, Y))
 
         #print(len(X), len(Y))
 

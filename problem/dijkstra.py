@@ -72,7 +72,7 @@ class DijkstraSolution:
         return sources
 
     def solution(self):
-        G = nx.from_numpy_matrix(self.original_A.clone().detach().numpy())
+        G = nx.from_numpy_array(self.original_A.clone().detach().numpy())
         _votes = self.votes.clone().detach().numpy()
 
         def weight_function(u, v, direction):
