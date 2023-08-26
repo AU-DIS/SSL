@@ -42,3 +42,6 @@ python3 experiments_spectrum.py
 
 **Convert PKL to CSV format**\
 python3 pkl_to_csv.py
+
+**CONE data to CSV format**\
+python3 plot_CONE.py football 0.1
