@@ -35,7 +35,7 @@ python3 get_increasing_edge_removal.py football 0.1 1
 python3 experiments_ssl_data_term.py football 1 11 0.1 0.3 1
 
 **CONE Experiments**\
-python3 .CONE/experiments_CONE.py
+python3 CONE/experiments_CONE.py
 
 **Spectrum Experiments**\
 python3 experiments_spectrum.py
